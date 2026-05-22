@@ -1,0 +1,297 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  TEACHER
+}
+
+enum Section {
+  NURSERY
+  PRIMARY
+  JUNIOR_SECONDARY
+  SENIOR_SECONDARY
+}
+
+enum SheetType {
+  NURSERY_EARLY
+  PRIMARY
+  JUNIOR_SECONDARY
+  SENIOR_SECONDARY_BASIC
+  SENIOR_SECONDARY_EXTENDED
+}
+
+enum TermName {
+  FIRST
+  SECOND
+  THIRD
+}
+
+enum AssessmentType {
+  CLASS_TEST
+  MID_TERM_EXAM
+  TERMINAL_EXAM
+}
+
+enum ResultStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+}
+
+enum AdminGrade {
+  A
+  B
+  C
+  D
+  E
+  F
+}
+
+enum AcademicStatus {
+  ACTIVE
+  PROMOTED
+  REPEATING
+  GRADUATED
+}
+
+model School {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  logoUrl   String?
+  email     String   @unique
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  config    SchoolConfig?
+  users     User[]
+  classes   Class[]
+  terms     Term[]
+  subjects  Subject[]
+  students  Student[]
+}
+
+model SchoolConfig {
+  id                      String   @id @default(cuid())
+  schoolId                String   @unique
+  school                  School   @relation(fields: [schoolId], references: [id])
+  passThreshold           Int      @default(50)
+  distinctionThreshold    Int      @default(75)
+  graduationType          String   @default("passAll")
+  graduationMinCumulative Int      @default(50)
+  ratingScale             Json?
+  affectiveTraits         Json?
+  psychomotorSkills       Json?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model User {
+  id           String   @id @default(cuid())
+  schoolId     String
+  school       School   @relation(fields: [schoolId], references: [id])
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(TEACHER)
+  phone        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  classes         Class[]
+  approvedResults Result[] @relation("ApprovedBy")
+}
+
+model Class {
+  id           String    @id @default(cuid())
+  schoolId     String
+  school       School    @relation(fields: [schoolId], references: [id])
+  name         String
+  section      Section
+  sheetType    SheetType @default(PRIMARY)
+  order        Int
+  teacherId    String?
+  teacher      User?     @relation(fields: [teacherId], references: [id])
+  academicYear String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  students        Student[]
+  subjects        Subject[]
+  academicRecords AcademicRecord[]
+
+  @@unique([schoolId, name, academicYear])
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id])
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
+  name      String
+  code      String?
+  createdAt DateTime @default(now())
+
+  studentSubjects StudentSubject[]
+
+  @@unique([schoolId, classId, name])
+}
+
+model Student {
+  id            String         @id @default(cuid())
+  schoolId      String
+  school        School         @relation(fields: [schoolId], references: [id])
+  classId       String
+  class         Class          @relation(fields: [classId], references: [id])
+  firstName     String
+  lastName      String
+  regNumber     String
+  parentPinHash String
+  status        AcademicStatus @default(ACTIVE)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  studentSubjects StudentSubject[]
+  assessments     Assessment[]
+  scoreSummaries  ScoreSummary[]
+  results         Result[]
+  academicRecords AcademicRecord[]
+
+  @@unique([schoolId, regNumber])
+}
+
+model StudentSubject {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  createdAt DateTime @default(now())
+
+  assessments    Assessment[]
+  scoreSummaries ScoreSummary[]
+
+  @@unique([studentId, subjectId])
+}
+
+model Term {
+  id           String   @id @default(cuid())
+  schoolId     String
+  school       School   @relation(fields: [schoolId], references: [id])
+  name         TermName
+  academicYear String
+  isCurrent    Boolean  @default(false)
+  startsAt     DateTime
+  endsAt       DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  results Result[]
+
+  @@unique([schoolId, name, academicYear])
+}
+
+model ExamPeriod {
+  id        String          @id @default(cuid())
+  termId    String
+  type      AssessmentType
+  name      String
+  isOpen    Boolean         @default(false)
+  startsAt  DateTime
+  endsAt    DateTime
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  assessments Assessment[]
+}
+
+model Assessment {
+  id               String         @id @default(cuid())
+  studentId        String
+  student          Student        @relation(fields: [studentId], references: [id])
+  studentSubjectId String
+  studentSubject   StudentSubject @relation(fields: [studentSubjectId], references: [id])
+  examPeriodId     String
+  examPeriod       ExamPeriod     @relation(fields: [examPeriodId], references: [id])
+  type             AssessmentType
+  name             String
+  maxScore         Int
+  scoreObtained    Int
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model ScoreSummary {
+  id                     String    @id @default(cuid())
+  studentId              String
+  student                Student   @relation(fields: [studentId], references: [id])
+  studentSubjectId       String
+  studentSubject         StudentSubject @relation(fields: [studentSubjectId], references: [id])
+  caScore                Float?    // Continuous Assessment (normalized)
+  ca1Score               Float?    // For nursery: C.A (20) first column
+  ca2Score               Float?    // For nursery: C.A (20) second column
+  examScore              Float?
+  totalScore             Float?
+  grade                  String?
+  subjectPosition        Int?
+  subjectTeacherSignature String?
+  isFail                 Boolean?
+  updatedAt              DateTime  @updatedAt
+
+  @@unique([studentSubjectId])
+}
+
+model Result {
+  id              String       @id @default(cuid())
+  studentId       String
+  student         Student      @relation(fields: [studentId], references: [id])
+  termId          String
+  term            Term         @relation(fields: [termId], references: [id])
+  academicYear    String
+  cumulative      Float?
+  average         Float?
+  position        Int?
+  positionOutOf   Int?
+  daysPresent     Int?
+  daysAbsent      Int?
+  outstandingFees String?
+  resumptionDate  String?
+  teacherComment  String?
+  adminComment    String?
+  adminGrade      AdminGrade?
+  affectiveDomain Json?        // [{trait, rating, comment}]
+  psychomotorData Json?        // [{skill, rating, comment}]
+  status          ResultStatus @default(DRAFT)
+  approvedAt      DateTime?
+  approvedById    String?
+  approvedBy      User?        @relation("ApprovedBy", fields: [approvedById], references: [id])
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([studentId, termId])
+}
+
+model AcademicRecord {
+  id               String         @id @default(cuid())
+  studentId        String
+  student          Student        @relation(fields: [studentId], references: [id])
+  classId          String
+  class            Class          @relation(fields: [classId], references: [id])
+  academicYear     String
+  annualCumulative Float?
+  annualPosition   Int?
+  status           AcademicStatus @default(ACTIVE)
+  promotedAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
