@@ -11,10 +11,12 @@
 3. Run `npm run build` to verify compilation
 
 ## Deploy to Cloudflare Pages
+- Requires Node.js 22+ (use `nvm use` — `.nvmrc` is in the project)
 - `npm run cf:build` — build for Cloudflare
 - `npm run cf:deploy` — build + deploy to Cloudflare Pages
 - First deploy: run `npm run cf:deploy` — auto-creates Pages project
 - Then set env vars in Cloudflare dashboard: `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL`
+- The package `@opennextjs/cloudflare` is patched (via `patch-package` + `postinstall`) to mark `pg-cloudflare` as external in the esbuild bundle
 
 ## Key Commands
 - `npm run dev` — local development
