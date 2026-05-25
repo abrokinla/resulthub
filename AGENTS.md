@@ -10,9 +10,11 @@
 2. Run `npm run dev` for local development
 3. Run `npm run build` to verify compilation
 
-## Deploy to Cloudflare
+## Deploy to Cloudflare Pages
 - `npm run cf:build` — build for Cloudflare
-- `npm run cf:deploy` — deploy to Cloudflare Workers
+- `npm run cf:deploy` — build + deploy to Cloudflare Pages
+- First deploy: run `npm run cf:deploy` — auto-creates Pages project
+- Then set env vars in Cloudflare dashboard: `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL`
 
 ## Key Commands
 - `npm run dev` — local development
