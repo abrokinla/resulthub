@@ -1,34 +1,41 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { query } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
     const { subjectId, classId } = await req.json();
 
-    const students = await prisma.student.findMany({
-      where: { classId },
-      select: { id: true },
-    });
+    const students = await query<{ id: string }>(
+      `SELECT id FROM "Student" WHERE "classId" = $1`,
+      [classId]
+    );
 
-    const existingAssignments = await prisma.studentSubject.findMany({
-      where: { subjectId },
-      select: { studentId: true },
-    });
+    const existingAssignments = await query<{ studentId: string }>(
+      `SELECT "studentId" FROM "StudentSubject" WHERE "subjectId" = $1`,
+      [subjectId]
+    );
     const existingIds = new Set(existingAssignments.map((a) => a.studentId));
 
-    const newAssignments = students
+    const newAssignmentIds = students
       .filter((s) => !existingIds.has(s.id))
-      .map((s) => ({
-        studentId: s.id,
-        subjectId,
-      }));
+      .map((s) => s.id);
 
-    if (newAssignments.length > 0) {
-      await prisma.studentSubject.createMany({ data: newAssignments });
+    if (newAssignmentIds.length > 0) {
+      const values = newAssignmentIds
+        .map((sid, i) => `($${i * 2 + 1}, $${i * 2 + 2})`)
+        .join(", ");
+      const params: string[] = [];
+      for (const sid of newAssignmentIds) {
+        params.push(sid, subjectId);
+      }
+      await query(
+        `INSERT INTO "StudentSubject" ("studentId", "subjectId") VALUES ${values}`,
+        params
+      );
     }
 
     return NextResponse.json({
-      message: `Assigned to ${newAssignments.length} students`,
+      message: `Assigned to ${newAssignmentIds.length} students`,
     });
   } catch (error) {
     console.error("Assign subject error:", error);

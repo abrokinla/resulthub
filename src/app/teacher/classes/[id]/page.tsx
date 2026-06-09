@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { queryOne, query } from "@/lib/db";
 import Link from "next/link";
 import { CreateStudentForm } from "./create-student-form";
 import { SubjectManager } from "./subject-manager";
@@ -15,28 +15,47 @@ export default async function ClassDetailPage({ params }: Props) {
   if (!session || session.user.role !== "TEACHER") redirect("/login");
   const { id } = await params;
 
-  const cls = await prisma.class.findFirst({
-    where: { id, teacherId: session.user.id },
-    include: {
-      students: {
-        include: {
-          studentSubjects: {
-            include: {
-              subject: true,
-              scoreSummaries: true,
-            },
-          },
-        },
-        orderBy: { firstName: "asc" },
-      },
-      subjects: { orderBy: { name: "asc" } },
-    },
-  });
+  const cls = await queryOne<{ id: string; name: string; academicYear: string }>(
+    `SELECT id, name, "academicYear" FROM "Class" WHERE id = $1 AND "teacherId" = $2`,
+    [id, session.user.id]
+  );
 
   if (!cls) notFound();
 
-  const students = cls.students;
-  const subjects = cls.subjects;
+  const students = await query<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    regNumber: string;
+  }>(
+    `SELECT id, "firstName", "lastName", "regNumber" FROM "Student"
+     WHERE "classId" = $1 ORDER BY "firstName" ASC`,
+    [id]
+  );
+
+  const subjects = await query<{ id: string; name: string; code: string | null }>(
+    `SELECT id, name, code FROM "Subject" WHERE "classId" = $1 ORDER BY name ASC`,
+    [id]
+  );
+
+  const studentSubjects = await query<{
+    id: string;
+    studentId: string;
+    subjectName: string;
+    caScore: number | null;
+    examScore: number | null;
+    totalScore: number | null;
+    grade: string | null;
+  }>(
+    `SELECT ss.id, ss."studentId", sub.name AS "subjectName",
+            sc."caScore", sc."examScore", sc."totalScore", sc.grade
+     FROM "StudentSubject" ss
+     JOIN "Subject" sub ON ss."subjectId" = sub.id
+     LEFT JOIN "ScoreSummary" sc ON sc."studentSubjectId" = ss.id
+     WHERE ss."studentId" IN (SELECT id FROM "Student" WHERE "classId" = $1)
+     ORDER BY sub.name ASC`,
+    [id]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -73,14 +92,16 @@ export default async function ClassDetailPage({ params }: Props) {
             id: s.id,
             name: `${s.firstName} ${s.lastName}`,
             regNumber: s.regNumber,
-            subjects: s.studentSubjects.map((ss) => ({
-              id: ss.id,
-              subjectName: ss.subject.name,
-              caScore: ss.scoreSummaries[0]?.caScore ?? null,
-              examScore: ss.scoreSummaries[0]?.examScore ?? null,
-              totalScore: ss.scoreSummaries[0]?.totalScore ?? null,
-              grade: ss.scoreSummaries[0]?.grade ?? null,
-            })),
+            subjects: studentSubjects
+              .filter((ss) => ss.studentId === s.id)
+              .map((ss) => ({
+                id: ss.id,
+                subjectName: ss.subjectName,
+                caScore: ss.caScore ?? null,
+                examScore: ss.examScore ?? null,
+                totalScore: ss.totalScore ?? null,
+                grade: ss.grade ?? null,
+              })),
           }))}
           subjects={subjects.map((s) => ({ id: s.id, name: s.name }))}
         />

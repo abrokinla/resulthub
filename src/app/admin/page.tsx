@@ -1,27 +1,32 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { queryOne } from "@/lib/db";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") redirect("/login");
 
-  const teachersCount = await prisma.user.count({
-    where: { schoolId: session.user.schoolId, role: "TEACHER" },
-  });
-  const studentsCount = await prisma.student.count({
-    where: { schoolId: session.user.schoolId },
-  });
-  const classesCount = await prisma.class.count({
-    where: { schoolId: session.user.schoolId },
-  });
-  const pendingResults = await prisma.result.count({
-    where: {
-      student: { schoolId: session.user.schoolId },
-      status: "PENDING_APPROVAL",
-    },
-  });
+  const schoolId = session.user.schoolId;
+
+  const teachersCount = (await queryOne<{ count: string }>(
+    `SELECT COUNT(*)::text FROM "User" WHERE "schoolId" = $1 AND role = 'TEACHER'`,
+    [schoolId]
+  ))?.count ?? "0";
+  const studentsCount = (await queryOne<{ count: string }>(
+    `SELECT COUNT(*)::text FROM "Student" WHERE "schoolId" = $1`,
+    [schoolId]
+  ))?.count ?? "0";
+  const classesCount = (await queryOne<{ count: string }>(
+    `SELECT COUNT(*)::text FROM "Class" WHERE "schoolId" = $1`,
+    [schoolId]
+  ))?.count ?? "0";
+  const pendingResults = (await queryOne<{ count: string }>(
+    `SELECT COUNT(*)::text FROM "Result" r
+     JOIN "Student" s ON r."studentId" = s.id
+     WHERE s."schoolId" = $1 AND r.status = 'PENDING_APPROVAL'`,
+    [schoolId]
+  ))?.count ?? "0";
 
   return (
     <div className="min-h-screen bg-gray-50">

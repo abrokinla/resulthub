@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { query, queryOne } from "@/lib/db";
 import { computeCAScore, computeExamScore, computeTotal, isFail } from "@/lib/utils";
 import { computeGrade, getSheetType } from "@/lib/sheet-types";
 
@@ -10,32 +10,35 @@ export async function PUT(req: Request) {
     const schoolConfigs = new Map<string, { passThreshold: number; sheetTypeId: string }>();
 
     for (const entry of entries) {
-      const { studentSubjectId, caScore, examScore, classId } = entry;
+      const { studentSubjectId, caScore, examScore } = entry;
 
       if (!studentSubjectId) continue;
 
-      const studentSubject = await prisma.studentSubject.findUnique({
-        where: { id: studentSubjectId },
-        include: {
-          student: {
-            include: { class: true, school: { include: { config: true } } },
-          },
-          subject: true,
-        },
-      });
-      if (!studentSubject) continue;
+      const ss = await queryOne<{
+        studentId: string;
+        schoolId: string;
+        classSheetType: string;
+        classId: string;
+        passThreshold: number;
+      }>(
+        `SELECT ss."studentId", s."schoolId", cl."sheetType" AS "classSheetType",
+                s."classId", COALESCE(sc."passThreshold", 50) AS "passThreshold"
+         FROM "StudentSubject" ss
+         JOIN "Student" s ON ss."studentId" = s.id
+         JOIN "Class" cl ON s."classId" = cl.id
+         LEFT JOIN "SchoolConfig" sc ON sc."schoolId" = s."schoolId"
+         WHERE ss.id = $1`,
+        [studentSubjectId]
+      );
+      if (!ss) continue;
 
-      const schoolId = studentSubject.student.schoolId;
+      const schoolId = ss.schoolId;
       let passThreshold = 50;
       let sheetTypeId = "PRIMARY";
 
       if (!schoolConfigs.has(schoolId)) {
-        const cls = studentSubject.student.class;
-        sheetTypeId = cls.sheetType;
-        const cfg = studentSubject.student.school.config;
-        if (cfg) {
-          passThreshold = cfg.passThreshold;
-        }
+        sheetTypeId = ss.classSheetType;
+        passThreshold = ss.passThreshold;
         schoolConfigs.set(schoolId, { passThreshold, sheetTypeId });
       } else {
         const cached = schoolConfigs.get(schoolId)!;
@@ -43,11 +46,10 @@ export async function PUT(req: Request) {
         sheetTypeId = cached.sheetTypeId;
       }
 
-      // Get assessments for CA computation
-      const assessments = await prisma.assessment.findMany({
-        where: { studentSubjectId },
-        select: { type: true, scoreObtained: true, maxScore: true },
-      });
+      const assessments = await query<{ type: string; scoreObtained: number; maxScore: number }>(
+        `SELECT type, "scoreObtained", "maxScore" FROM "Assessment" WHERE "studentSubjectId" = $1`,
+        [studentSubjectId]
+      );
 
       const sheetConfig = getSheetType("", sheetTypeId);
       const caMax = sheetConfig.scoreColumns.find((c) => c.key === "ca" || c.key === "ca1")?.maxScore ?? 30;
@@ -57,25 +59,15 @@ export async function PUT(req: Request) {
       const total = computeTotal(computedCA, computedExam);
       const grade = computeGrade(total, sheetConfig);
 
-      await prisma.scoreSummary.upsert({
-        where: { studentSubjectId },
-        create: {
-          studentId: studentSubject.studentId,
-          studentSubjectId,
-          caScore: computedCA,
-          examScore: computedExam,
-          totalScore: total,
-          grade,
-          isFail: isFail(total, passThreshold),
-        },
-        update: {
-          caScore: computedCA,
-          examScore: computedExam,
-          totalScore: total,
-          grade,
-          isFail: isFail(total, passThreshold),
-        },
-      });
+      await query(
+        `INSERT INTO "ScoreSummary" ("studentId", "studentSubjectId", "caScore", "examScore", "totalScore", grade, "isFail")
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT ("studentSubjectId")
+         DO UPDATE SET "caScore" = EXCLUDED."caScore", "examScore" = EXCLUDED."examScore",
+                       "totalScore" = EXCLUDED."totalScore", grade = EXCLUDED.grade,
+                       "isFail" = EXCLUDED."isFail"`,
+        [ss.studentId, studentSubjectId, computedCA, computedExam, total, grade, isFail(total, passThreshold)]
+      );
     }
 
     return NextResponse.json({ message: "Scores updated" });

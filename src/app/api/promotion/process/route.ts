@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { queryOne, query } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
 export async function POST(req: Request) {
@@ -11,9 +11,15 @@ export async function POST(req: Request) {
 
     const { schoolId } = await req.json();
 
-    const config = await prisma.schoolConfig.findUnique({
-      where: { schoolId },
-    });
+    const config = await queryOne<{
+      passThreshold: number;
+      graduationType: string;
+      graduationMinCumulative: number;
+    }>(
+      `SELECT "passThreshold", "graduationType", "graduationMinCumulative"
+       FROM "SchoolConfig" WHERE "schoolId" = $1`,
+      [schoolId]
+    );
     if (!config) {
       return NextResponse.json(
         { error: "School config not found" },
@@ -21,40 +27,39 @@ export async function POST(req: Request) {
       );
     }
 
-    const students = await prisma.student.findMany({
-      where: { schoolId, status: "ACTIVE" },
-      include: {
-        class: true,
-        results: {
-          where: { status: "APPROVED" },
-          include: {
-            student: {
-              include: {
-                studentSubjects: {
-                  include: { scoreSummaries: true },
-                },
-              },
-            },
-          },
-        },
-      },
-      orderBy: { classId: "asc" },
-    });
+    const students = await query<{
+      id: string;
+      classId: string;
+      section: string;
+      className: string;
+      classOrder: number;
+      academicYear: string;
+      cumulative: number;
+    }>(
+      `SELECT s.id, s."classId", cl.section, cl.name AS "className",
+              cl."order" AS "classOrder", cl."academicYear",
+              COALESCE((SELECT SUM(r.cumulative) FROM "Result" r
+               WHERE r."studentId" = s.id AND r.status = 'APPROVED'), 0) AS cumulative
+       FROM "Student" s
+       JOIN "Class" cl ON s."classId" = cl.id
+       WHERE s."schoolId" = $1 AND s.status = 'ACTIVE'
+       ORDER BY s."classId"`,
+      [schoolId]
+    );
 
     let promoted = 0;
     let graduated = 0;
     let failed = 0;
 
     for (const student of students) {
-      const totalScore = student.results.reduce(
-        (sum, r) => sum + (r.cumulative ?? 0),
-        0
+      const totalScore = student.cumulative;
+      const totalSubjectsResult = await queryOne<{ count: number }>(
+        `SELECT COUNT(*) AS count FROM "StudentSubject" ss
+         JOIN "ScoreSummary" sc ON sc."studentSubjectId" = ss.id
+         WHERE ss."studentId" = $1`,
+        [student.id]
       );
-      const totalSubjects = student.results.reduce(
-        (sum, r) =>
-          sum + r.student.studentSubjects.filter((ss) => ss.scoreSummaries[0]).length,
-        0
-      );
+      const totalSubjects = totalSubjectsResult?.count ?? 0;
       const totalPossible = totalSubjects * 100;
 
       let qualifies = false;
@@ -65,40 +70,35 @@ export async function POST(req: Request) {
       }
 
       // Determine next class
-      const currentOrder = student.class.order;
-      const nextClass = await prisma.class.findFirst({
-        where: {
-          schoolId,
-          order: currentOrder + 1,
-          academicYear: student.class.academicYear,
-        },
-      });
+      const currentOrder = student.classOrder;
+      const nextClass = await queryOne<{ id: string }>(
+        `SELECT id FROM "Class"
+         WHERE "schoolId" = $1 AND "order" = $2 AND "academicYear" = $3
+         LIMIT 1`,
+        [schoolId, currentOrder + 1, student.academicYear]
+      );
 
       if (qualifies) {
-        if (student.class.section === "SENIOR_SECONDARY" && student.class.name === "SSS 3") {
-          // Graduate
-          await prisma.student.update({
-            where: { id: student.id },
-            data: { status: "GRADUATED" },
-          });
+        if (student.section === "SENIOR_SECONDARY" && student.className === "SSS 3") {
+          await query(
+            `UPDATE "Student" SET status = 'GRADUATED' WHERE id = $1`,
+            [student.id]
+          );
           graduated++;
         } else if (nextClass) {
-          // Promote
-          await prisma.student.update({
-            where: { id: student.id },
-            data: { classId: nextClass.id, status: "PROMOTED" },
-          });
+          await query(
+            `UPDATE "Student" SET "classId" = $1, status = 'PROMOTED' WHERE id = $2`,
+            [nextClass.id, student.id]
+          );
           promoted++;
         } else {
-          // No next class found
           failed++;
         }
       } else {
-        // Repeat
-        await prisma.student.update({
-          where: { id: student.id },
-          data: { status: "REPEATING" },
-        });
+        await query(
+          `UPDATE "Student" SET status = 'REPEATING' WHERE id = $1`,
+          [student.id]
+        );
         failed++;
       }
     }

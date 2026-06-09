@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { queryOne, query } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { getSheetType, computeGrade } from "@/lib/sheet-types";
 
@@ -12,83 +12,87 @@ export async function PUT(req: Request) {
 
     const { resultId } = await req.json();
 
-    const result = await prisma.result.findUnique({
-      where: { id: resultId },
-      include: {
-        student: {
-          include: {
-            class: true,
-            school: { include: { config: true } },
-            studentSubjects: {
-              include: { scoreSummaries: true, subject: true },
-            },
-          },
-        },
-        term: true,
-      },
-    });
+    const result = await queryOne<{
+      studentId: string;
+      classId: string;
+      section: string;
+      sheetType: string;
+      passThreshold: number;
+    }>(
+      `SELECT r."studentId", cl.id AS "classId", cl.section, cl."sheetType",
+              COALESCE(sc."passThreshold", 50) AS "passThreshold"
+       FROM "Result" r
+       JOIN "Student" s ON r."studentId" = s.id
+       JOIN "Class" cl ON s."classId" = cl.id
+       LEFT JOIN "SchoolConfig" sc ON sc."schoolId" = s."schoolId"
+       WHERE r.id = $1`,
+      [resultId]
+    );
 
     if (!result) {
       return NextResponse.json({ error: "Result not found" }, { status: 404 });
     }
 
-    const config = result.student.school.config;
-    const sheetType = getSheetType(result.student.class.section, result.student.class.sheetType);
+    const sheetType = getSheetType(result.section, result.sheetType);
 
-    // Compute per-subject positions
-    const summaries = result.student.studentSubjects
-      .map((ss) => ({
-        ssId: ss.id,
-        subjectName: ss.subject.name,
-        totalScore: ss.scoreSummaries[0]?.totalScore ?? 0,
-      }))
-      .filter((s) => s.totalScore > 0);
+    // Get all student-subjects with scores for this student
+    const summaries = await query<{
+      ssId: string;
+      subjectId: string;
+      subjectName: string;
+      totalScore: number;
+    }>(
+      `SELECT ss.id AS "ssId", ss."subjectId", sub.name AS "subjectName",
+              COALESCE(sc."totalScore", 0) AS "totalScore"
+       FROM "StudentSubject" ss
+       JOIN "Subject" sub ON ss."subjectId" = sub.id
+       LEFT JOIN "ScoreSummary" sc ON sc."studentSubjectId" = ss.id
+       WHERE ss."studentId" = $1 AND COALESCE(sc."totalScore", 0) > 0`,
+      [result.studentId]
+    );
 
-    // Get all students in same class + term for ranking
-    const allStudents = await prisma.studentSubject.findMany({
-      where: {
-        student: { classId: result.student.classId },
-      },
-      include: {
-        scoreSummaries: true,
-      },
-    });
+    // Get all students in same class with their scores
+    const allStudentScores = await query<{
+      studentId: string;
+      subjectId: string;
+      totalScore: number;
+    }>(
+      `SELECT ss."studentId", ss."subjectId", COALESCE(sc."totalScore", 0) AS "totalScore"
+       FROM "StudentSubject" ss
+       LEFT JOIN "ScoreSummary" sc ON sc."studentSubjectId" = ss.id
+       WHERE ss."studentId" IN (
+         SELECT id FROM "Student" WHERE "classId" = $1
+       )`,
+      [result.classId]
+    );
 
     // Group by student to compute cumulatives
     const studentCumulatives = new Map<string, number>();
-    for (const ss of allStudents) {
-      const total = ss.scoreSummaries[0]?.totalScore ?? 0;
+    for (const s of allStudentScores) {
       studentCumulatives.set(
-        ss.studentId,
-        (studentCumulatives.get(ss.studentId) ?? 0) + total
+        s.studentId,
+        (studentCumulatives.get(s.studentId) ?? 0) + s.totalScore
       );
     }
 
-    // Compute subject positions
+    // Compute per-subject positions
     for (const summary of summaries) {
-      const otherSubjectScores = allStudents
-        .filter(
-          (ss) =>
-            ss.subjectId ===
-            result.student.studentSubjects.find((s) => s.id === summary.ssId)?.subjectId
-        )
-        .map((ss) => ss.scoreSummaries[0]?.totalScore ?? 0)
+      const subjectScores = allStudentScores
+        .filter((s) => s.subjectId === summary.subjectId)
+        .map((s) => s.totalScore)
         .sort((a, b) => b - a);
 
-      const position =
-        otherSubjectScores.indexOf(summary.totalScore) + 1;
+      const position = subjectScores.indexOf(summary.totalScore) + 1;
 
-      await prisma.scoreSummary.update({
-        where: { studentSubjectId: summary.ssId },
-        data: { subjectPosition: position },
-      });
+      await query(
+        `UPDATE "ScoreSummary" SET "subjectPosition" = $1 WHERE "studentSubjectId" = $2`,
+        [position, summary.ssId]
+      );
     }
 
     // Compute overall cumulative, average
     const cumulative = summaries.reduce((s, ss) => s + ss.totalScore, 0);
     const average = summaries.length > 0 ? cumulative / summaries.length : 0;
-
-    // Compute grade
     const adminGrade = computeGrade(average, sheetType);
 
     // Compute overall position
@@ -98,21 +102,23 @@ export async function PUT(req: Request) {
     const position = allCumulatives.findIndex((c) => c.cum === studentCumulatives.get(result.studentId)) + 1;
     const positionOutOf = allCumulatives.length;
 
-    const updated = await prisma.result.update({
-      where: { id: resultId },
-      data: {
+    await query(
+      `UPDATE "Result" SET cumulative = $1, average = $2, position = $3, "positionOutOf" = $4,
+                           "adminGrade" = $5, status = 'APPROVED', "approvedAt" = $6, "approvedById" = $7
+       WHERE id = $8`,
+      [
         cumulative,
-        average: Math.round(average * 100) / 100,
+        Math.round(average * 100) / 100,
         position,
         positionOutOf,
-        adminGrade: adminGrade as any,
-        status: "APPROVED",
-        approvedAt: new Date(),
-        approvedById: session.user.id,
-      },
-    });
+        adminGrade,
+        new Date(),
+        session.user.id,
+        resultId,
+      ]
+    );
 
-    return NextResponse.json(updated);
+    return NextResponse.json({ message: "Result approved" });
   } catch (error) {
     console.error("Approve result error:", error);
     return NextResponse.json(

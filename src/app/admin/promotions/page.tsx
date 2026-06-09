@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { queryOne, query } from "@/lib/db";
 import Link from "next/link";
 import { ProcessPromotions } from "./process-promotions";
 
@@ -8,22 +8,28 @@ export default async function PromotionsPage() {
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") redirect("/login");
 
-  const currentTerm = await prisma.term.findFirst({
-    where: { schoolId: session.user.schoolId, isCurrent: true },
-  });
+  const currentTerm = await queryOne<{ name: string }>(
+    `SELECT name FROM "Term" WHERE "schoolId" = $1 AND "isCurrent" = true LIMIT 1`,
+    [session.user.schoolId]
+  );
 
-  // Get all students with their annual records
-  const students = await prisma.student.findMany({
-    where: { schoolId: session.user.schoolId },
-    include: {
-      class: true,
-      academicRecords: {
-        where: { status: "ACTIVE" },
-        take: 1,
-      },
-    },
-    orderBy: [{ class: { order: "asc" } }, { firstName: "asc" }],
-  });
+  const students = await query<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    regNumber: string;
+    status: string;
+    className: string;
+    classOrder: number;
+  }>(
+    `SELECT s.id, s."firstName", s."lastName", s."regNumber", s.status,
+            c.name AS "className", c."order" AS "classOrder"
+     FROM "Student" s
+     JOIN "Class" c ON s."classId" = c.id
+     WHERE s."schoolId" = $1
+     ORDER BY c."order" ASC, s."firstName" ASC`,
+    [session.user.schoolId]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -60,7 +66,7 @@ export default async function PromotionsPage() {
                     {s.firstName} {s.lastName}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {s.class.name} - {s.regNumber}
+                    {s.className} - {s.regNumber}
                   </p>
                 </div>
                 <span

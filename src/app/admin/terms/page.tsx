@@ -1,16 +1,25 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { query } from "@/lib/db";
 import Link from "next/link";
 
 export default async function TermsPage() {
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") redirect("/login");
 
-  const terms = await prisma.term.findMany({
-    where: { schoolId: session.user.schoolId },
-    orderBy: [{ academicYear: "desc" }, { name: "asc" }],
-  });
+  const terms = await query<{
+    id: string;
+    name: string;
+    academicYear: string;
+    isCurrent: boolean;
+    startsAt: string;
+    endsAt: string;
+  }>(
+    `SELECT id, name, "academicYear", "isCurrent", "startsAt", "endsAt"
+     FROM "Term" WHERE "schoolId" = $1
+     ORDER BY "academicYear" DESC, name ASC`,
+    [session.user.schoolId]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -39,8 +48,8 @@ export default async function TermsPage() {
                       {t.name} Term - {t.academicYear}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {t.startsAt.toLocaleDateString()} -{" "}
-                      {t.endsAt.toLocaleDateString()}
+                      {new Date(t.startsAt).toLocaleDateString()} -{" "}
+                      {new Date(t.endsAt).toLocaleDateString()}
                     </p>
                   </div>
                   <span

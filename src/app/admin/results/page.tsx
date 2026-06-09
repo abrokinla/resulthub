@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { query } from "@/lib/db";
 import Link from "next/link";
 import { ApproveButton } from "./approve-button";
 
@@ -8,17 +8,25 @@ export default async function ResultsPage() {
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") redirect("/login");
 
-  const results = await prisma.result.findMany({
-    where: {
-      student: { schoolId: session.user.schoolId },
-    },
-    include: {
-      student: { select: { firstName: true, lastName: true, regNumber: true } },
-      term: { select: { name: true } },
-    },
-    orderBy: { updatedAt: "desc" },
-    take: 50,
-  });
+  const results = await query<{
+    id: string;
+    status: string;
+    firstName: string;
+    lastName: string;
+    regNumber: string;
+    termName: string;
+    updatedAt: string;
+  }>(
+    `SELECT r.id, r.status, s."firstName", s."lastName", s."regNumber",
+            t.name AS "termName", r."updatedAt"
+     FROM "Result" r
+     JOIN "Student" s ON r."studentId" = s.id
+     JOIN "Term" t ON r."termId" = t.id
+     WHERE s."schoolId" = $1
+     ORDER BY r."updatedAt" DESC
+     LIMIT 50`,
+    [session.user.schoolId]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -46,10 +54,10 @@ export default async function ResultsPage() {
                 <div key={r.id} className="p-4 flex items-center justify-between">
                   <div>
                     <p className="font-medium">
-                      {r.student.firstName} {r.student.lastName}
+                      {r.firstName} {r.lastName}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {r.student.regNumber} - {r.term.name} Term
+                      {r.regNumber} - {r.termName} Term
                     </p>
                   </div>
                   <div className="flex items-center gap-3">

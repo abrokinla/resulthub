@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
-import { prisma } from "./prisma";
+import { queryOne } from "./db";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -14,26 +14,36 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-          include: { school: true },
-        });
+        const rows = await queryOne<{
+          id: string;
+          email: string;
+          name: string;
+          role: string;
+          schoolId: string;
+          passwordHash: string;
+          slug: string;
+        }>(
+          `SELECT u.id, u.email, u.name, u.role, u."schoolId", u."passwordHash", s.slug
+           FROM "User" u JOIN "School" s ON u."schoolId" = s.id
+           WHERE u.email = $1`,
+          [credentials.email]
+        );
 
-        if (!user) return null;
+        if (!rows) return null;
 
         const isValid = await compare(
           credentials.password as string,
-          user.passwordHash
+          rows.passwordHash
         );
         if (!isValid) return null;
 
         return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          schoolId: user.schoolId,
-          schoolSlug: user.school.slug,
+          id: rows.id,
+          email: rows.email,
+          name: rows.name,
+          role: rows.role,
+          schoolId: rows.schoolId,
+          schoolSlug: rows.slug,
         };
       },
     }),

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { query } from "@/lib/db";
 import Link from "next/link";
 import { AssignTeacherForm } from "./assign-form";
 
@@ -8,19 +8,28 @@ export default async function ClassesPage() {
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") redirect("/login");
 
-  const classes = await prisma.class.findMany({
-    where: { schoolId: session.user.schoolId },
-    include: {
-      teacher: { select: { id: true, name: true } },
-      _count: { select: { students: true } },
-    },
-    orderBy: { order: "asc" },
-  });
+  const classes = await query<{
+    id: string;
+    name: string;
+    section: string;
+    teacherId: string | null;
+    teacherName: string | null;
+    studentsCount: number;
+  }>(
+    `SELECT c.id, c.name, c.section, c."teacherId",
+            t.name AS "teacherName",
+            (SELECT COUNT(*) FROM "Student" WHERE "classId" = c.id)::int AS "studentsCount"
+     FROM "Class" c
+     LEFT JOIN "User" t ON c."teacherId" = t.id
+     WHERE c."schoolId" = $1
+     ORDER BY c."order" ASC`,
+    [session.user.schoolId]
+  );
 
-  const teachers = await prisma.user.findMany({
-    where: { schoolId: session.user.schoolId, role: "TEACHER" },
-    select: { id: true, name: true },
-  });
+  const teachers = await query<{ id: string; name: string }>(
+    `SELECT id, name FROM "User" WHERE "schoolId" = $1 AND role = 'TEACHER'`,
+    [session.user.schoolId]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -47,13 +56,13 @@ export default async function ClassesPage() {
                 </div>
                 <div className="flex-1 text-center">
                   <p className="text-sm text-gray-500">
-                    {cls._count.students} students
+                    {cls.studentsCount} students
                   </p>
                 </div>
                 <div className="flex-1 text-right">
                   <AssignTeacherForm
                     classId={cls.id}
-                    currentTeacherId={cls.teacher?.id ?? null}
+                    currentTeacherId={cls.teacherId ?? null}
                     teachers={teachers}
                   />
                 </div>

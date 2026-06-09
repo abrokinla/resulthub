@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { query } from "@/lib/db";
 
 export async function PUT(req: Request) {
   try {
     const { classId, teacherId } = await req.json();
 
-    await prisma.class.update({
-      where: { id: classId },
-      data: { teacherId },
-    });
+    await query(
+      `UPDATE "Class" SET "teacherId" = $1 WHERE id = $2`,
+      [teacherId, classId]
+    );
 
     return NextResponse.json({ message: "Teacher assigned" });
   } catch (error) {

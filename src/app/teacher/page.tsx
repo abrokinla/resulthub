@@ -1,16 +1,24 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { query } from "@/lib/db";
 import Link from "next/link";
 
 export default async function TeacherDashboard() {
   const session = await auth();
   if (!session || session.user.role !== "TEACHER") redirect("/login");
 
-  const classes = await prisma.class.findMany({
-    where: { teacherId: session.user.id },
-    include: { _count: { select: { students: true } } },
-  });
+  const classes = await query<{
+    id: string;
+    name: string;
+    academicYear: string;
+    studentsCount: number;
+  }>(
+    `SELECT c.id, c.name, c."academicYear",
+            (SELECT COUNT(*) FROM "Student" WHERE "classId" = c.id)::int AS "studentsCount"
+     FROM "Class" c
+     WHERE c."teacherId" = $1`,
+    [session.user.id]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,7 +58,7 @@ export default async function TeacherDashboard() {
                     <p className="text-sm text-gray-500">{cls.academicYear}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold">{cls._count.students}</p>
+                    <p className="text-2xl font-bold">{cls.studentsCount}</p>
                     <p className="text-sm text-gray-500">Students</p>
                   </div>
                 </div>

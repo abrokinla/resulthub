@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { queryOne, query } from "@/lib/db";
 import { generatePin } from "@/lib/utils";
 
 export async function POST(req: Request) {
@@ -14,9 +14,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const existing = await prisma.student.findFirst({
-      where: { schoolId, regNumber },
-    });
+    const existing = await queryOne(
+      `SELECT id FROM "Student" WHERE "schoolId" = $1 AND "regNumber" = $2`,
+      [schoolId, regNumber]
+    );
     if (existing) {
       return NextResponse.json(
         { error: "A student with this registration number already exists" },
@@ -26,16 +27,11 @@ export async function POST(req: Request) {
 
     const pin = generatePin();
 
-    const student = await prisma.student.create({
-      data: {
-        schoolId,
-        classId,
-        firstName,
-        lastName,
-        regNumber,
-        parentPinHash: pin,
-      },
-    });
+    const [student] = await query<{ id: string }>(
+      `INSERT INTO "Student" ("schoolId", "classId", "firstName", "lastName", "regNumber", "parentPinHash")
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [schoolId, classId, firstName, lastName, regNumber, pin]
+    );
 
     return NextResponse.json(
       { message: "Student created", id: student.id, pin },

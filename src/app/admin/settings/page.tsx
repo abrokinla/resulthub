@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { queryOne } from "@/lib/db";
 import Link from "next/link";
 import { SettingsForm } from "./settings-form";
 
@@ -8,10 +8,27 @@ export default async function SettingsPage() {
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") redirect("/login");
 
-  const school = await prisma.school.findUnique({
-    where: { id: session.user.schoolId },
-    include: { config: true },
-  });
+  const school = await queryOne<{
+    id: string;
+    name: string;
+    email: string;
+    logoUrl: string | null;
+    address: string | null;
+    passThreshold: number;
+    distinctionThreshold: number;
+    graduationType: string;
+    graduationMinCumulative: number;
+  }>(
+    `SELECT s.id, s.name, s.email, s."logoUrl", s.address,
+            COALESCE(sc."passThreshold", 50) AS "passThreshold",
+            COALESCE(sc."distinctionThreshold", 75) AS "distinctionThreshold",
+            COALESCE(sc."graduationType", 'passAll') AS "graduationType",
+            COALESCE(sc."graduationMinCumulative", 50) AS "graduationMinCumulative"
+     FROM "School" s
+     LEFT JOIN "SchoolConfig" sc ON sc."schoolId" = s.id
+     WHERE s.id = $1`,
+    [session.user.schoolId]
+  );
 
   if (!school) redirect("/admin");
 
@@ -53,7 +70,13 @@ export default async function SettingsPage() {
           </div>
         </div>
 
-        <SettingsForm config={school.config!} />
+        <SettingsForm config={{
+          id: school.id,
+          passThreshold: school.passThreshold,
+          distinctionThreshold: school.distinctionThreshold,
+          graduationType: school.graduationType,
+          graduationMinCumulative: school.graduationMinCumulative,
+        }} />
       </main>
     </div>
   );

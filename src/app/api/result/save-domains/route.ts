@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { queryOne, query } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
 export async function PUT(req: Request) {
@@ -12,36 +12,39 @@ export async function PUT(req: Request) {
     const { studentId, termId, affectiveDomain, psychomotorData } =
       await req.json();
 
-    // Find or create result for this student + term
-    let result = await prisma.result.findUnique({
-      where: {
-        studentId_termId: { studentId, termId },
-      },
-    });
+    const existing = await queryOne<{ id: string }>(
+      `SELECT id FROM "Result" WHERE "studentId" = $1 AND "termId" = $2`,
+      [studentId, termId]
+    );
 
-    if (!result) {
-      const term = await prisma.term.findUnique({ where: { id: termId } });
-      result = await prisma.result.create({
-        data: {
+    if (!existing) {
+      const term = await queryOne<{ academicYear: string }>(
+        `SELECT "academicYear" FROM "Term" WHERE id = $1`,
+        [termId]
+      );
+      await query(
+        `INSERT INTO "Result" ("studentId", "termId", "academicYear", status, "affectiveDomain", "psychomotorData")
+         VALUES ($1, $2, $3, 'DRAFT', $4::jsonb, $5::jsonb)`,
+        [
           studentId,
           termId,
-          academicYear: term?.academicYear ?? "",
-          status: "DRAFT",
-          affectiveDomain: affectiveDomain ?? [],
-          psychomotorData: psychomotorData ?? [],
-        },
-      });
+          term?.academicYear ?? "",
+          JSON.stringify(affectiveDomain ?? []),
+          JSON.stringify(psychomotorData ?? []),
+        ]
+      );
     } else {
-      result = await prisma.result.update({
-        where: { id: result.id },
-        data: {
-          affectiveDomain: affectiveDomain ?? [],
-          psychomotorData: psychomotorData ?? [],
-        },
-      });
+      await query(
+        `UPDATE "Result" SET "affectiveDomain" = $1::jsonb, "psychomotorData" = $2::jsonb WHERE id = $3`,
+        [
+          JSON.stringify(affectiveDomain ?? []),
+          JSON.stringify(psychomotorData ?? []),
+          existing.id,
+        ]
+      );
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json({ message: "Domains saved" });
   } catch (error) {
     console.error("Save domains error:", error);
     return NextResponse.json(

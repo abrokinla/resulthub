@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { query } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
@@ -12,9 +12,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const subject = await prisma.subject.create({
-      data: { schoolId, classId, name, code: code || null },
-    });
+    const [subject] = await query<{ id: string }>(
+      `INSERT INTO "Subject" ("schoolId", "classId", name, code)
+       VALUES ($1, $2, $3, $4) RETURNING id`,
+      [schoolId, classId, name, code || null]
+    );
 
     return NextResponse.json(
       { message: "Subject created", id: subject.id },

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+import { queryOne, query } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +13,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await queryOne(
+      `SELECT id FROM "User" WHERE email = $1`,
+      [email]
+    );
     if (existing) {
       return NextResponse.json(
         { error: "A user with this email already exists" },
@@ -23,15 +26,11 @@ export async function POST(req: Request) {
 
     const passwordHash = await hash(password, 12);
 
-    const teacher = await prisma.user.create({
-      data: {
-        schoolId,
-        email,
-        passwordHash,
-        name,
-        role: "TEACHER",
-      },
-    });
+    const [teacher] = await query<{ id: string }>(
+      `INSERT INTO "User" ("schoolId", email, "passwordHash", name, role)
+       VALUES ($1, $2, $3, $4, 'TEACHER') RETURNING id`,
+      [schoolId, email, passwordHash, name]
+    );
 
     return NextResponse.json(
       { message: "Teacher created", id: teacher.id },

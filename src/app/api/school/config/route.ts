@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { query } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
 export async function PUT(req: Request) {
@@ -12,15 +12,10 @@ export async function PUT(req: Request) {
     const { passThreshold, distinctionThreshold, graduationType, graduationMinCumulative } =
       await req.json();
 
-    await prisma.schoolConfig.update({
-      where: { schoolId: session.user.schoolId },
-      data: {
-        passThreshold,
-        distinctionThreshold,
-        graduationType,
-        graduationMinCumulative,
-      },
-    });
+    await query(
+      `UPDATE "SchoolConfig" SET "passThreshold" = $1, "distinctionThreshold" = $2, "graduationType" = $3, "graduationMinCumulative" = $4 WHERE "schoolId" = $5`,
+      [passThreshold, distinctionThreshold, graduationType, graduationMinCumulative, session.user.schoolId]
+    );
 
     return NextResponse.json({ message: "Settings saved" });
   } catch (error) {
