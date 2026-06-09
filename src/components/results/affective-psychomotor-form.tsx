@@ -72,7 +72,7 @@ export function AffectivePsychomotorForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
       <h3 className="font-semibold mb-4">Affective & Psychomotor Ratings</h3>
 
       {affectiveTraits.length > 0 && (
@@ -80,7 +80,7 @@ export function AffectivePsychomotorForm({
           <h4 className="font-medium text-sm mb-2">Affective Domain</h4>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b">
+              <tr className="border-b dark:border-gray-800">
                 <th className="text-left py-1">Trait</th>
                 {RATINGS.map((r) => (
                   <th key={r} className="text-center py-1 w-10">
@@ -91,7 +91,7 @@ export function AffectivePsychomotorForm({
             </thead>
             <tbody>
               {affective.map((item) => (
-                <tr key={item.trait} className="border-b">
+                <tr key={item.trait} className="border-b dark:border-gray-800">
                   <td className="py-1">{item.trait}</td>
                   {RATINGS.map((r) => (
                     <td key={r} className="text-center py-1">
@@ -116,7 +116,7 @@ export function AffectivePsychomotorForm({
           <h4 className="font-medium text-sm mb-2">Psychomotor Domain</h4>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b">
+              <tr className="border-b dark:border-gray-800">
                 <th className="text-left py-1">Skill</th>
                 {RATINGS.map((r) => (
                   <th key={r} className="text-center py-1 w-10">
@@ -127,7 +127,7 @@ export function AffectivePsychomotorForm({
             </thead>
             <tbody>
               {psychomotor.map((item) => (
-                <tr key={item.skill} className="border-b">
+                <tr key={item.skill} className="border-b dark:border-gray-800">
                   <td className="py-1">{item.skill}</td>
                   {RATINGS.map((r) => (
                     <td key={r} className="text-center py-1">

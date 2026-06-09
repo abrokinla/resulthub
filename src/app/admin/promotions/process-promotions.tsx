@@ -39,7 +39,7 @@ export function ProcessPromotions({
   return (
     <div>
       {currentTermName !== "THIRD" ? (
-        <div className="bg-yellow-50 text-yellow-700 px-4 py-2 rounded-lg text-sm mb-4">
+        <div className="bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 px-4 py-2 rounded-lg text-sm mb-4">
           Promotions can only be processed at the end of the Third Term.
         </div>
       ) : (
@@ -54,23 +54,23 @@ export function ProcessPromotions({
 
           {result && (
             <div className="mt-4 grid grid-cols-3 gap-4">
-              <div className="bg-green-50 p-3 rounded-lg text-center">
-                <p className="text-2xl font-bold text-green-700">
+              <div className="bg-green-50 dark:bg-green-900/30 p-3 rounded-lg text-center">
+                <p className="text-2xl font-bold text-green-700 dark:text-green-300">
                   {result.promoted}
                 </p>
-                <p className="text-sm text-green-600">Promoted</p>
+                <p className="text-sm text-green-600 dark:text-green-400">Promoted</p>
               </div>
-              <div className="bg-purple-50 p-3 rounded-lg text-center">
-                <p className="text-2xl font-bold text-purple-700">
+              <div className="bg-purple-50 dark:bg-purple-900/30 p-3 rounded-lg text-center">
+                <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
                   {result.graduated}
                 </p>
-                <p className="text-sm text-purple-600">Graduated</p>
+                <p className="text-sm text-purple-600 dark:text-purple-400">Graduated</p>
               </div>
-              <div className="bg-red-50 p-3 rounded-lg text-center">
-                <p className="text-2xl font-bold text-red-700">
+              <div className="bg-red-50 dark:bg-red-900/30 p-3 rounded-lg text-center">
+                <p className="text-2xl font-bold text-red-700 dark:text-red-300">
                   {result.failed}
                 </p>
-                <p className="text-sm text-red-600">Repeating</p>
+                <p className="text-sm text-red-600 dark:text-red-400">Repeating</p>
               </div>
             </div>
           )}

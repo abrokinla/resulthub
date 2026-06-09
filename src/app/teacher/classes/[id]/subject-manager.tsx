@@ -52,7 +52,7 @@ export function SubjectManager({
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
+    <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
       <h3 className="font-semibold mb-4">Subjects</h3>
 
       <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
@@ -61,7 +61,7 @@ export function SubjectManager({
           placeholder="Subject name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="border rounded-lg px-3 py-2 text-sm flex-1"
+          className="border dark:border-gray-700 rounded-lg px-3 py-2 text-sm flex-1"
           required
         />
         <input
@@ -69,7 +69,7 @@ export function SubjectManager({
           placeholder="Code (opt)"
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          className="border rounded-lg px-3 py-2 text-sm w-20"
+          className="border dark:border-gray-700 rounded-lg px-3 py-2 text-sm w-20"
         />
         <button
           type="submit"
@@ -84,7 +84,7 @@ export function SubjectManager({
         {subjects.map((s) => (
           <div key={s.id} className="flex items-center justify-between text-sm">
             <span>
-              {s.name} {s.code && <span className="text-gray-400">({s.code})</span>}
+              {s.name} {s.code && <span className="text-gray-400 dark:text-gray-500">({s.code})</span>}
             </span>
             <button
               onClick={() => assignToAll(s.id)}
@@ -95,7 +95,7 @@ export function SubjectManager({
           </div>
         ))}
         {subjects.length === 0 && (
-          <p className="text-sm text-gray-500">No subjects yet</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No subjects yet</p>
         )}
       </div>
     </div>

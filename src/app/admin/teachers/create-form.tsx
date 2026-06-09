@@ -35,7 +35,7 @@ export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
+    <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm border dark:border-gray-700">
       <h2 className="font-semibold mb-4">Create Teacher Account</h2>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="grid grid-cols-3 gap-3">
@@ -66,7 +66,7 @@ export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
           />
         </div>
         {message && (
-          <p className={`text-sm ${isSuccess ? "text-success" : "text-red-600"}`}>
+          <p className={`text-sm ${isSuccess ? "text-success dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
             {message}
           </p>
         )}

@@ -21,15 +21,15 @@ export default async function TeacherDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Teacher Dashboard</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{session.user.name}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-300">{session.user.name}</span>
             <Link
               href="/api/auth/signout"
-              className="text-sm text-red-600 hover:underline"
+              className="text-sm text-red-600 dark:text-red-400 hover:underline"
             >
               Sign Out
             </Link>
@@ -41,8 +41,8 @@ export default async function TeacherDashboard() {
         <h2 className="text-lg font-semibold mb-4">My Classes</h2>
 
         {classes.length === 0 ? (
-          <div className="bg-white p-8 rounded-lg shadow-sm border text-center">
-            <p className="text-gray-500">No classes assigned to you yet.</p>
+          <div className="bg-white dark:bg-gray-900 p-8 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700 text-center">
+            <p className="text-gray-500 dark:text-gray-400">No classes assigned to you yet.</p>
           </div>
         ) : (
           <div className="grid gap-4">
@@ -50,16 +50,16 @@ export default async function TeacherDashboard() {
               <Link
                 key={cls.id}
                 href={`/teacher/classes/${cls.id}`}
-                className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition"
+                className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/50 transition"
               >
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="font-semibold text-lg">{cls.name}</h3>
-                    <p className="text-sm text-gray-500">{cls.academicYear}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{cls.academicYear}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold">{cls.studentsCount}</p>
-                    <p className="text-sm text-gray-500">Students</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Students</p>
                   </div>
                 </div>
               </Link>
@@ -70,17 +70,17 @@ export default async function TeacherDashboard() {
         <div className="mt-8 grid grid-cols-2 gap-4">
           <Link
             href="/teacher/csv-import"
-            className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition text-center"
+            className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/50 transition text-center"
           >
             <h3 className="font-semibold">CSV Import</h3>
-            <p className="text-sm text-gray-500">Bulk import students/scores</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Bulk import students/scores</p>
           </Link>
           <Link
             href="/teacher/exports"
-            className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition text-center"
+            className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/50 transition text-center"
           >
             <h3 className="font-semibold">Exports</h3>
-            <p className="text-sm text-gray-500">Export results</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Export results</p>
           </Link>
         </div>
       </main>

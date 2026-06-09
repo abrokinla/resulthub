@@ -22,7 +22,7 @@ export function ApproveButton({ resultId }: { resultId: string }) {
     <button
       onClick={handleApprove}
       disabled={loading}
-      className="text-xs bg-success text-white px-3 py-1 rounded-full hover:bg-green-700 disabled:opacity-50"
+      className="text-xs bg-success text-white px-3 py-1 rounded-full hover:bg-green-700 dark:hover:bg-green-600 disabled:opacity-50"
     >
       {loading ? "..." : "Approve"}
     </button>

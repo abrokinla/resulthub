@@ -24,8 +24,8 @@ export default async function TeachersPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Teachers</h1>
           <Link href="/admin" className="text-sm text-primary hover:underline">
@@ -37,21 +37,21 @@ export default async function TeachersPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         <CreateTeacherForm schoolId={session.user.schoolId} />
 
-        <div className="mt-8 bg-white rounded-lg shadow-sm border">
-          <div className="p-4 border-b">
+        <div className="mt-8 bg-white dark:bg-gray-900 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
+          <div className="p-4 border-b dark:border-gray-800">
             <h2 className="font-semibold">All Teachers</h2>
           </div>
           {teachers.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">No teachers yet.</div>
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">No teachers yet.</div>
           ) : (
             <div className="divide-y">
               {teachers.map((t) => (
                 <div key={t.id} className="p-4 flex justify-between items-center">
                   <div>
                     <p className="font-medium">{t.name}</p>
-                    <p className="text-sm text-gray-500">{t.email}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.email}</p>
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
                     {t.classesCount} classes
                   </div>
                 </div>

@@ -32,8 +32,8 @@ export default async function ClassesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Classes</h1>
           <Link href="/admin" className="text-sm text-primary hover:underline">
@@ -43,8 +43,8 @@ export default async function ClassesPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-4 border-b">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
+          <div className="p-4 border-b dark:border-gray-800">
             <h2 className="font-semibold">Class List</h2>
           </div>
           <div className="divide-y">
@@ -52,10 +52,10 @@ export default async function ClassesPage() {
               <div key={cls.id} className="p-4 flex items-center justify-between">
                 <div className="flex-1">
                   <p className="font-medium">{cls.name}</p>
-                  <p className="text-sm text-gray-500">{cls.section}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{cls.section}</p>
                 </div>
                 <div className="flex-1 text-center">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {cls.studentsCount} students
                   </p>
                 </div>

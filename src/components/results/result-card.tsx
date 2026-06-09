@@ -69,7 +69,7 @@ export function ResultCard({
   const scale = sheetConfig.ratingScale;
 
   return (
-    <div className="bg-white shadow-sm border print:shadow-none print:border-none">
+    <div className="bg-white shadow-sm border print:shadow-none print:border-none dark:bg-gray-900 dark:border-gray-700">
       {/* School Header */}
       <div className="text-center border-b-2 border-black pb-4 mb-6">
         {school.logoUrl && (
@@ -81,7 +81,7 @@ export function ResultCard({
         )}
         <h1 className="text-xl font-bold uppercase tracking-wide">{school.name}</h1>
         {school.address && (
-          <p className="text-xs text-gray-600">{school.address}</p>
+          <p className="text-xs text-gray-600 dark:text-gray-300">{school.address}</p>
         )}
         <h2 className="text-lg font-semibold mt-2 uppercase">Terminal Report Sheet</h2>
       </div>
@@ -122,7 +122,7 @@ export function ResultCard({
       <div className="overflow-x-auto mb-6">
         <table className="w-full text-sm border-collapse border border-black">
           <thead>
-            <tr className="bg-gray-100">
+            <tr className="bg-gray-100 dark:bg-gray-800">
               <th className="border border-black px-2 py-1 text-left w-1">
                 S/N
               </th>
@@ -150,7 +150,7 @@ export function ResultCard({
               const grade = row.grade || "-";
               const isF = grade === "F";
               return (
-                <tr key={i} className={isF ? "text-red-600" : ""}>
+                <tr key={i} className={isF ? "text-red-600 dark:text-red-400" : ""}>
                   <td className="border border-black px-2 py-1 text-center">
                     {i + 1}
                   </td>
@@ -171,7 +171,7 @@ export function ResultCard({
                       <td
                         key={col.key}
                         className={`border border-black px-2 py-1 text-center font-bold ${
-                          col.key === "total" && isF ? "text-red-600" : ""
+                          col.key === "total" && isF ? "text-red-600 dark:text-red-400" : ""
                         }`}
                       >
                         {typeof disp === "number" ? disp.toFixed(0) : disp}
@@ -229,12 +229,12 @@ export function ResultCard({
       {/* Affective Domain */}
       {affectiveDomain && affectiveDomain.length > 0 && (
         <div className="mb-6">
-          <h3 className="font-semibold text-sm bg-gray-100 px-2 py-1 border border-black">
+          <h3 className="font-semibold text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 border border-black">
             AFFECTIVE DOMAIN
           </h3>
           <table className="w-full text-sm border-collapse border border-black">
             <thead>
-              <tr className="bg-gray-50">
+              <tr className="bg-gray-50 dark:bg-gray-800">
                 <th className="border border-black px-2 py-1 text-left">TRAITS</th>
                 {["A", "B", "C", "D", "E"].map((c) => (
                   <th key={c} className="border border-black px-2 py-1 text-center w-10">
@@ -267,12 +267,12 @@ export function ResultCard({
       {/* Psychomotor Domain */}
       {psychomotorData && psychomotorData.length > 0 && (
         <div className="mb-6">
-          <h3 className="font-semibold text-sm bg-gray-100 px-2 py-1 border border-black">
+          <h3 className="font-semibold text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 border border-black">
             PSYCHOMOTOR DOMAIN
           </h3>
           <table className="w-full text-sm border-collapse border border-black">
             <thead>
-              <tr className="bg-gray-50">
+              <tr className="bg-gray-50 dark:bg-gray-800">
                 <th className="border border-black px-2 py-1 text-left">SKILLS</th>
                 {["A", "B", "C", "D", "E"].map((c) => (
                   <th key={c} className="border border-black px-2 py-1 text-center w-10">
@@ -307,7 +307,7 @@ export function ResultCard({
         {teacherComment && (
           <div className="text-sm">
             <span className="font-medium">Form Teacher&apos;s Comment:</span>
-            <p className="border-b border-dotted border-gray-400 mt-1 min-h-[2rem]">
+            <p className="border-b border-dotted border-gray-400 dark:border-gray-600 mt-1 min-h-[2rem]">
               {teacherComment}
             </p>
           </div>
@@ -320,7 +320,7 @@ export function ResultCard({
                 : "Head Teacher&apos;s Comment"}
               {adminGrade && <span> ({adminGrade})</span>}:
             </span>
-            <p className="border-b border-dotted border-gray-400 mt-1 min-h-[2rem]">
+            <p className="border-b border-dotted border-gray-400 dark:border-gray-600 mt-1 min-h-[2rem]">
               {adminComment}
             </p>
           </div>

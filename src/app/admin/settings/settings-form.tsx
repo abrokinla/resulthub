@@ -43,7 +43,7 @@ export function SettingsForm({ config }: { config: Config }) {
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
+    <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm border dark:border-gray-700">
       <h2 className="font-semibold mb-4">Grading Configuration</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
@@ -57,11 +57,11 @@ export function SettingsForm({ config }: { config: Config }) {
               onChange={(e) =>
                 setForm({ ...form, passThreshold: parseInt(e.target.value) })
               }
-              className="border rounded-lg px-3 py-2 w-full"
+              className="border dark:border-gray-700 rounded-lg px-3 py-2 w-full"
               min={0}
               max={100}
             />
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
               Scores below this are shown in red
             </p>
           </div>
@@ -78,7 +78,7 @@ export function SettingsForm({ config }: { config: Config }) {
                   distinctionThreshold: parseInt(e.target.value),
                 })
               }
-              className="border rounded-lg px-3 py-2 w-full"
+              className="border dark:border-gray-700 rounded-lg px-3 py-2 w-full"
               min={0}
               max={100}
             />
@@ -94,7 +94,7 @@ export function SettingsForm({ config }: { config: Config }) {
             onChange={(e) =>
               setForm({ ...form, graduationType: e.target.value })
             }
-            className="border rounded-lg px-3 py-2 w-full"
+            className="border dark:border-gray-700 rounded-lg px-3 py-2 w-full"
           >
             <option value="passAll">Must pass all subjects</option>
             <option value="cumulativeAbove">
@@ -117,7 +117,7 @@ export function SettingsForm({ config }: { config: Config }) {
                   graduationMinCumulative: parseInt(e.target.value),
                 })
               }
-              className="border rounded-lg px-3 py-2 w-full"
+              className="border dark:border-gray-700 rounded-lg px-3 py-2 w-full"
               min={0}
             />
           </div>
@@ -126,7 +126,7 @@ export function SettingsForm({ config }: { config: Config }) {
         {message && (
           <p
             className={`text-sm ${
-              message.includes("saved") ? "text-success" : "text-red-600"
+              message.includes("saved") ? "text-success dark:text-green-400" : "text-red-600 dark:text-red-400"
             }`}
           >
             {message}

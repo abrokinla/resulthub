@@ -42,7 +42,7 @@ export function CreateStudentForm({
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
+    <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
       <h3 className="font-semibold mb-4">Add Student</h3>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="grid grid-cols-2 gap-2">
@@ -51,7 +51,7 @@ export function CreateStudentForm({
             placeholder="First Name"
             value={form.firstName}
             onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-            className="border rounded-lg px-3 py-2 text-sm"
+            className="border dark:border-gray-700 rounded-lg px-3 py-2 text-sm"
             required
           />
           <input
@@ -59,7 +59,7 @@ export function CreateStudentForm({
             placeholder="Last Name"
             value={form.lastName}
             onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-            className="border rounded-lg px-3 py-2 text-sm"
+            className="border dark:border-gray-700 rounded-lg px-3 py-2 text-sm"
             required
           />
         </div>
@@ -68,13 +68,13 @@ export function CreateStudentForm({
           placeholder="Registration Number"
           value={form.regNumber}
           onChange={(e) => setForm({ ...form, regNumber: e.target.value })}
-          className="border rounded-lg px-3 py-2 text-sm w-full"
+          className="border dark:border-gray-700 rounded-lg px-3 py-2 text-sm w-full"
           required
         />
         {message && (
           <p
             className={`text-sm ${
-              message.includes("PIN") ? "text-success" : "text-red-600"
+              message.includes("PIN") ? "text-success dark:text-green-400" : "text-red-600 dark:text-red-400"
             }`}
           >
             {message}

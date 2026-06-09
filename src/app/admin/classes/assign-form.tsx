@@ -31,7 +31,7 @@ export function AssignTeacherForm({
     <select
       defaultValue={currentTeacherId ?? ""}
       onChange={handleChange}
-      className="text-sm border rounded-lg px-2 py-1"
+      className="text-sm border dark:border-gray-700 rounded-lg px-2 py-1"
     >
       <option value="">Unassigned</option>
       {teachers.map((t) => (

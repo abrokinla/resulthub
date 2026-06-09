@@ -72,10 +72,10 @@ export default async function ViewResultPage({ params }: Props) {
   const result = results[0];
   if (!result) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center bg-white p-8 rounded-xl shadow-sm border">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="text-center bg-white dark:bg-gray-900 p-8 rounded-xl shadow-sm border dark:border-gray-700">
           <h1 className="text-2xl font-bold mb-2">No Results Available</h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             No approved results found for this student.
           </p>
           <Link
@@ -116,7 +116,7 @@ export default async function ViewResultPage({ params }: Props) {
     : undefined;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 print:bg-white print:p-0">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-8 px-4 print:bg-white print:p-0">
       <div className="max-w-[800px] mx-auto">
         {/* Print button (hidden when printing) */}
         <div className="mb-4 text-center print:hidden">

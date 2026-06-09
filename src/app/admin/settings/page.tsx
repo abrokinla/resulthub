@@ -33,8 +33,8 @@ export default async function SettingsPage() {
   if (!school) redirect("/admin");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">School Settings</h1>
           <Link href="/admin" className="text-sm text-primary hover:underline">
@@ -44,19 +44,19 @@ export default async function SettingsPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
           <h2 className="font-semibold mb-4">School Profile</h2>
           <div className="space-y-3">
             <div>
-              <label className="text-sm text-gray-500">School Name</label>
+              <label className="text-sm text-gray-500 dark:text-gray-400">School Name</label>
               <p className="font-medium">{school.name}</p>
             </div>
             <div>
-              <label className="text-sm text-gray-500">Email</label>
+              <label className="text-sm text-gray-500 dark:text-gray-400">Email</label>
               <p className="font-medium">{school.email}</p>
             </div>
             <div>
-              <label className="text-sm text-gray-500">Logo</label>
+              <label className="text-sm text-gray-500 dark:text-gray-400">Logo</label>
               {school.logoUrl ? (
                 <img
                   src={school.logoUrl}
@@ -64,7 +64,7 @@ export default async function SettingsPage() {
                   className="h-16 mt-1"
                 />
               ) : (
-                <p className="text-sm text-gray-400">No logo uploaded</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500">No logo uploaded</p>
               )}
             </div>
           </div>

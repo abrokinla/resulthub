@@ -58,12 +58,12 @@ export default async function ClassDetailPage({ params }: Props) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">{cls.name}</h1>
-            <p className="text-sm text-gray-500">{cls.academicYear}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{cls.academicYear}</p>
           </div>
           <Link
             href="/teacher"
