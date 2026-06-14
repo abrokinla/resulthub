@@ -5,6 +5,10 @@
   "compatibility_date": "2026-05-22",
   "compatibility_flags": ["nodejs_compat"],
   "account_id": "21524e48434296949b8d5adbd71079e2",
+  "vars": {
+    "NEXT_PUBLIC_APP_URL": "https://resulthub.abrokinla.workers.dev",
+    "AUTH_SECRET": "9d573e4f31428e8d66e21a12ceb1f14eee2537c492380d60a282d733cf29cc37"
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"

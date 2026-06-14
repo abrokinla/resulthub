@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hash } from "bcryptjs";
+import { hashPassword } from "@/lib/crypto";
 import { queryOne, query } from "@/lib/db";
 
 export async function POST(req: Request) {
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const passwordHash = await hash(password, 12);
+    const passwordHash = await hashPassword(password);
 
     const [teacher] = await query<{ id: string }>(
       `INSERT INTO "User" ("schoolId", email, "passwordHash", name, role)

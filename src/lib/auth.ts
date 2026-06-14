@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { compare } from "bcryptjs";
+import { verifyPassword } from "./crypto";
 import { queryOne } from "./db";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -31,7 +31,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!rows) return null;
 
-        const isValid = await compare(
+        const isValid = await verifyPassword(
           credentials.password as string,
           rows.passwordHash
         );

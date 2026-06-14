@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hash } from "bcryptjs";
+import { hashPassword } from "@/lib/crypto";
 import { queryOne, query, transaction, queryClient } from "@/lib/db";
 import { DEFAULT_CLASSES } from "@/lib/utils";
 
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
-    const passwordHash = await hash(password, 12);
+    const passwordHash = await hashPassword(password);
     const academicYear = new Date().getFullYear().toString();
     const now = new Date();
     const future = new Date(now);
