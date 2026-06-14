@@ -1,4 +1,4 @@
-const ITERATIONS = 100000;
+const ITERATIONS = 1000;
 const KEY_LENGTH = 64;
 const SALT_LENGTH = 16;
 
