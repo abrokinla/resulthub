@@ -4,6 +4,7 @@ import { verifyPassword } from "./crypto";
 import { queryOne } from "./db";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   providers: [
     Credentials({
       name: "credentials",
