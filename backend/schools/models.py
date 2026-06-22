@@ -59,8 +59,8 @@ class Term(models.Model):
     name = models.TextField(choices=NAME_CHOICES)
     academic_year = models.TextField(db_column='academicYear')
     is_current = models.BooleanField(default=False, db_column='isCurrent')
-    starts_at = models.DateTimeField(db_column='startsAt')
-    ends_at = models.DateTimeField(db_column='endsAt')
+    starts_at = models.DateTimeField(null=True, blank=True, db_column='startsAt')
+    ends_at = models.DateTimeField(null=True, blank=True, db_column='endsAt')
     created_at = models.DateTimeField(auto_now_add=True, db_column='createdAt')
     updated_at = models.DateTimeField(auto_now=True, db_column='updatedAt')
 
