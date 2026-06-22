@@ -35,7 +35,8 @@ export async function apiServer(path: string, options: ApiOptions = {}) {
 }
 
 export async function apiRoute(path: string, request: Request) {
-  const token = request.cookies.get('access_token')?.value
+  const cookieHeader = request.headers.get('cookie') || ''
+  const token = cookieHeader.split('; ').find(c => c.startsWith('access_token='))?.split('=')[1]
 
   const headers: Record<string, string> = {}
   if (token) {

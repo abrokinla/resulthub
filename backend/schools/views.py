@@ -34,6 +34,20 @@ def get_school_config(request):
     return Response(serializer.data)
 
 
+class TermViewSet(viewsets.ModelViewSet):
+    serializer_class = TermSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.school_id:
+            return Term.objects.filter(school_id=user.school_id)
+        return Term.objects.none()
+
+    def perform_create(self, serializer):
+        serializer.save(school_id=self.request.user.school_id)
+
+
 class ExamPeriodViewSet(viewsets.ModelViewSet):
     serializer_class = ExamPeriodSerializer
     permission_classes = [IsAuthenticated]
