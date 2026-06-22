@@ -36,7 +36,7 @@ export async function apiServer(path: string, options: ApiOptions = {}) {
     headers['Content-Type'] = 'application/json'
   }
 
-  const res = await fetch(`${API_URL}/api/${path}`, {
+  const res = await fetch(`${API_URL}/api/${path}/`, {
     method: method || 'GET',
     headers,
     body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
@@ -65,7 +65,7 @@ export async function apiRoute(path: string, request: Request) {
     headers['Content-Type'] = contentType
   }
 
-  const url = `${API_URL}/api/${path}`
+  const url = `${API_URL}/api/${path}/`
   const body = request.body ? await request.text() : undefined
 
   const res = await fetch(url, {
