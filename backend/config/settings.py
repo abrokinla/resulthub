@@ -53,18 +53,17 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 if DATABASE_URL:
-    import re
-    match = re.match(r'postgresql://(.+?):(.+?)@(.+?):(\d+)/(.+?)(\?.*)?$', DATABASE_URL)
-    if match:
-        user, password, host, port, name = match.group(1), match.group(2), match.group(3), match.group(4), match.group(5)
+    from urllib import parse as urlparse
+    result = urlparse.urlparse(DATABASE_URL)
+    if result.scheme in ('postgres', 'postgresql'):
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql',
-                'NAME': name,
-                'USER': user,
-                'PASSWORD': password,
-                'HOST': host,
-                'PORT': port,
+                'NAME': result.path.lstrip('/').split('?')[0],
+                'USER': urlparse.unquote(result.username or ''),
+                'PASSWORD': urlparse.unquote(result.password or ''),
+                'HOST': result.hostname or 'localhost',
+                'PORT': result.port or 5432,
                 'OPTIONS': {'sslmode': 'require'},
             }
         }
