@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export function CreateStudentForm({
   classId,
@@ -24,19 +25,13 @@ export function CreateStudentForm({
     setLoading(true);
     setMessage("");
 
-    const res = await fetch("/api/student/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, classId, schoolId }),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      setMessage("Student created! PIN: " + data.pin);
+    try {
+      const res = await api.post("/student/create", { ...form, classId, schoolId });
+      setMessage("Student created! PIN: " + (res.data.pin || ""));
       setForm({ firstName: "", lastName: "", regNumber: "" });
       router.refresh();
-    } else {
-      setMessage(data.error || "Failed to create student");
+    } catch {
+      setMessage("Failed to create student");
     }
     setLoading(false);
   }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 interface Subject {
   id: string;
@@ -28,27 +29,24 @@ export function SubjectManager({
     if (!name.trim()) return;
     setLoading(true);
 
-    const res = await fetch("/api/subject/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, code, classId, schoolId }),
-    });
-
-    if (res.ok) {
+    try {
+      await api.post("/subject/create", { name, code, classId, schoolId });
       setName("");
       setCode("");
       router.refresh();
+    } catch {
+      // silently fail
     }
     setLoading(false);
   }
 
   async function assignToAll(subjectId: string) {
-    await fetch("/api/subject/assign-all", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subjectId, classId }),
-    });
-    router.refresh();
+    try {
+      await api.post("/subject/assign-all", { subjectId, classId });
+      router.refresh();
+    } catch {
+      // silently fail
+    }
   }
 
   return (

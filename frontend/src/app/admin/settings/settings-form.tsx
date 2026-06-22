@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 interface Config {
   id: string;
@@ -27,16 +28,11 @@ export function SettingsForm({ config }: { config: Config }) {
     setSaving(true);
     setMessage("");
 
-    const res = await fetch("/api/school/config", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-
-    if (res.ok) {
+    try {
+      await api.put("/school/config", form);
       setMessage("Settings saved!");
       router.refresh();
-    } else {
+    } catch {
       setMessage("Failed to save settings");
     }
     setSaving(false);

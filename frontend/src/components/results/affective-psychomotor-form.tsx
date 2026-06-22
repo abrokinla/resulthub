@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 interface Props {
   resultId?: string;
@@ -56,19 +57,18 @@ export function AffectivePsychomotorForm({
     e.preventDefault();
     setSaving(true);
 
-    await fetch("/api/result/save-domains", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    try {
+      await api.put("/result/save-domains", {
         studentId,
         termId,
         affectiveDomain: affective,
         psychomotorData: psychomotor,
-      }),
-    });
-
+      });
+      router.refresh();
+    } catch {
+      // silently fail
+    }
     setSaving(false);
-    router.refresh();
   }
 
   return (

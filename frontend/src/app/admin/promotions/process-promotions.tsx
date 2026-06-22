@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export function ProcessPromotions({
   schoolId,
@@ -22,16 +23,12 @@ export function ProcessPromotions({
     setLoading(true);
     setResult(null);
 
-    const res = await fetch("/api/promotion/process", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ schoolId }),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      setResult(data);
+    try {
+      const res = await api.post("/promotion/process", { schoolId });
+      setResult(res.data);
       router.refresh();
+    } catch {
+      // silently fail
     }
     setLoading(false);
   }

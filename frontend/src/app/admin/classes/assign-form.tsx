@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 interface Props {
   classId: string;
@@ -18,13 +19,12 @@ export function AssignTeacherForm({
   async function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const teacherId = e.target.value || null;
 
-    await fetch("/api/class/assign-teacher", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ classId, teacherId }),
-    });
-
-    router.refresh();
+    try {
+      await api.put("/class/assign-teacher", { classId, teacherId });
+      router.refresh();
+    } catch {
+      // silently fail
+    }
   }
 
   return (

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { api } from "@/lib/api";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -27,26 +28,14 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.schoolName,
-          email: form.email,
-          password: form.password,
-        }),
+      await api.post("/auth/register", {
+        name: form.schoolName,
+        email: form.email,
+        password: form.password,
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Registration failed");
-        return;
-      }
-
       router.push("/login");
     } catch {
-      setError("Something went wrong");
+      setError("Registration failed");
     } finally {
       setLoading(false);
     }

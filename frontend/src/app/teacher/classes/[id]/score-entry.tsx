@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 interface StudentData {
   id: string;
@@ -56,15 +57,14 @@ export function ScoreEntry({
       classId,
     }));
 
-    await fetch("/api/score/update", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entries }),
-    });
-
+    try {
+      await api.put("/score/update", { entries });
+      setScores({});
+      router.refresh();
+    } catch {
+      // silently fail
+    }
     setSaving(false);
-    setScores({});
-    router.refresh();
   }
 
   return (

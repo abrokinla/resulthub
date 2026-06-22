@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { api } from "@/lib/api";
 
 export function ApproveButton({ resultId }: { resultId: string }) {
   const router = useRouter();
@@ -9,13 +10,13 @@ export function ApproveButton({ resultId }: { resultId: string }) {
 
   async function handleApprove() {
     setLoading(true);
-    await fetch("/api/result/approve", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resultId }),
-    });
+    try {
+      await api.put("/result/approve", { resultId });
+      router.refresh();
+    } catch {
+      // silently fail
+    }
     setLoading(false);
-    router.refresh();
   }
 
   return (

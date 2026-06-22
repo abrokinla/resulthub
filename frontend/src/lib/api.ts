@@ -1,4 +1,21 @@
+import axios from 'axios'
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+export const api = axios.create({
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json' },
+})
+
+api.interceptors.request.use((config) => {
+  if (typeof document !== 'undefined') {
+    const match = document.cookie.match(/(?:^|;\s*)access_token=([^;]*)/)
+    if (match) {
+      config.headers.Authorization = `Bearer ${match[1]}`
+    }
+  }
+  return config
+})
 
 interface ApiOptions {
   token?: string

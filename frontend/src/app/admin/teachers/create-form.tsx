@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
   const router = useRouter();
@@ -15,21 +16,15 @@ export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
     setLoading(true);
     setMessage("");
 
-    const res = await fetch("/api/teacher/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, schoolId }),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
+    try {
+      await api.post("/teacher/create", { ...form, schoolId });
       setIsSuccess(true);
       setMessage("Teacher created successfully!");
       setForm({ name: "", email: "", password: "" });
       router.refresh();
-    } else {
+    } catch {
       setIsSuccess(false);
-      setMessage(data.error || "Failed to create teacher");
+      setMessage("Failed to create teacher");
     }
     setLoading(false);
   }

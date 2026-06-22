@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { api } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,19 +15,15 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!res.ok) {
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      if (res.status === 200) {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch {
       setError("Invalid email or password");
-      return;
     }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (
