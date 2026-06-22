@@ -1,27 +1,17 @@
-import { auth } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { query } from "@/lib/db";
+import { apiServer } from "@/lib/api";
 import Link from "next/link";
 import { CreateTeacherForm } from "./create-form";
 
 export default async function TeachersPage() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") redirect("/login");
+  const token = (await cookies()).get("access_token")?.value;
+  if (!token) redirect("/login");
 
-  const teachers = await query<{
-    id: string;
-    name: string;
-    email: string;
-    classesCount: number;
-    createdAt: string;
-  }>(
-    `SELECT u.id, u.name, u.email, u."createdAt",
-            (SELECT COUNT(*) FROM "Class" WHERE "teacherId" = u.id)::int AS "classesCount"
-     FROM "User" u
-     WHERE u."schoolId" = $1 AND u.role = 'TEACHER'
-     ORDER BY u."createdAt" DESC`,
-    [session.user.schoolId]
-  );
+  const user = await apiServer("auth/me/", { token });
+  if (user.role !== "ADMIN") redirect("/login");
+
+  const teachers = await apiServer("users/?role=TEACHER", { token }).catch(() => []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -35,7 +25,7 @@ export default async function TeachersPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <CreateTeacherForm schoolId={session.user.schoolId} />
+        <CreateTeacherForm schoolId={user.schoolId} />
 
         <div className="mt-8 bg-white dark:bg-gray-900 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
           <div className="p-4 border-b dark:border-gray-800">
@@ -45,14 +35,14 @@ export default async function TeachersPage() {
             <div className="p-8 text-center text-gray-500 dark:text-gray-400">No teachers yet.</div>
           ) : (
             <div className="divide-y">
-              {teachers.map((t) => (
+              {teachers.map((t: any) => (
                 <div key={t.id} className="p-4 flex justify-between items-center">
                   <div>
                     <p className="font-medium">{t.name}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{t.email}</p>
                   </div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {t.classesCount} classes
+                    {t.classesCount ?? 0} classes
                   </div>
                 </div>
               ))}

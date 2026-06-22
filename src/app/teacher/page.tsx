@@ -1,24 +1,16 @@
-import { auth } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { query } from "@/lib/db";
+import { apiServer } from "@/lib/api";
 import Link from "next/link";
 
 export default async function TeacherDashboard() {
-  const session = await auth();
-  if (!session || session.user.role !== "TEACHER") redirect("/login");
+  const token = (await cookies()).get("access_token")?.value;
+  if (!token) redirect("/login");
 
-  const classes = await query<{
-    id: string;
-    name: string;
-    academicYear: string;
-    studentsCount: number;
-  }>(
-    `SELECT c.id, c.name, c."academicYear",
-            (SELECT COUNT(*) FROM "Student" WHERE "classId" = c.id)::int AS "studentsCount"
-     FROM "Class" c
-     WHERE c."teacherId" = $1`,
-    [session.user.id]
-  );
+  const user = await apiServer("auth/me/", { token });
+  if (user.role !== "TEACHER") redirect("/login");
+
+  const classes = await apiServer("classes/", { token });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -26,9 +18,9 @@ export default async function TeacherDashboard() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Teacher Dashboard</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600 dark:text-gray-300">{session.user.name}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-300">{user.name}</span>
             <Link
-              href="/api/auth/signout"
+              href="/api/auth/logout"
               className="text-sm text-red-600 dark:text-red-400 hover:underline"
             >
               Sign Out
@@ -46,7 +38,7 @@ export default async function TeacherDashboard() {
           </div>
         ) : (
           <div className="grid gap-4">
-            {classes.map((cls) => (
+            {classes.map((cls: any) => (
               <Link
                 key={cls.id}
                 href={`/teacher/classes/${cls.id}`}
@@ -55,10 +47,10 @@ export default async function TeacherDashboard() {
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="font-semibold text-lg">{cls.name}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{cls.academicYear}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{cls.academic_year}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold">{cls.studentsCount}</p>
+                    <p className="text-2xl font-bold">{cls.studentsCount ?? 0}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Students</p>
                   </div>
                 </div>

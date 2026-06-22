@@ -1,35 +1,20 @@
-import { auth } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { query } from "@/lib/db";
+import { apiServer } from "@/lib/api";
 import Link from "next/link";
 import { AssignTeacherForm } from "./assign-form";
 
 export default async function ClassesPage() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") redirect("/login");
+  const token = (await cookies()).get("access_token")?.value;
+  if (!token) redirect("/login");
 
-  const classes = await query<{
-    id: string;
-    name: string;
-    section: string;
-    teacherId: string | null;
-    teacherName: string | null;
-    studentsCount: number;
-  }>(
-    `SELECT c.id, c.name, c.section, c."teacherId",
-            t.name AS "teacherName",
-            (SELECT COUNT(*) FROM "Student" WHERE "classId" = c.id)::int AS "studentsCount"
-     FROM "Class" c
-     LEFT JOIN "User" t ON c."teacherId" = t.id
-     WHERE c."schoolId" = $1
-     ORDER BY c."order" ASC`,
-    [session.user.schoolId]
-  );
+  const user = await apiServer("auth/me/", { token });
+  if (user.role !== "ADMIN") redirect("/login");
 
-  const teachers = await query<{ id: string; name: string }>(
-    `SELECT id, name FROM "User" WHERE "schoolId" = $1 AND role = 'TEACHER'`,
-    [session.user.schoolId]
-  );
+  const [classes, teachers] = await Promise.all([
+    apiServer("classes/", { token }),
+    apiServer("users/?role=TEACHER", { token }).catch(() => []),
+  ]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -48,7 +33,7 @@ export default async function ClassesPage() {
             <h2 className="font-semibold">Class List</h2>
           </div>
           <div className="divide-y">
-            {classes.map((cls) => (
+            {classes.map((cls: any) => (
               <div key={cls.id} className="p-4 flex items-center justify-between">
                 <div className="flex-1">
                   <p className="font-medium">{cls.name}</p>
@@ -56,13 +41,13 @@ export default async function ClassesPage() {
                 </div>
                 <div className="flex-1 text-center">
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {cls.studentsCount} students
+                    {cls.studentsCount ?? 0} students
                   </p>
                 </div>
                 <div className="flex-1 text-right">
                   <AssignTeacherForm
                     classId={cls.id}
-                    currentTeacherId={cls.teacherId ?? null}
+                    currentTeacherId={cls.teacher ?? null}
                     teachers={teachers}
                   />
                 </div>

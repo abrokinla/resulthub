@@ -1,29 +1,33 @@
-import { auth } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-export default auth((req) => {
-  const { pathname } = req.nextUrl;
-  const session = req.auth;
+const publicPaths = [
+  '/login',
+  '/signup',
+  '/access',
+  '/api/auth/login',
+  '/api/auth/logout',
+  '/_next',
+  '/favicon.ico',
+  '/',
+]
 
-  const protectedPaths = ["/dashboard", "/admin", "/teacher"];
+function isPublicPath(pathname: string) {
+  return publicPaths.some((p) => pathname === p || pathname.startsWith(p + '/') || pathname.startsWith(p))
+}
 
-  if (protectedPaths.some((p) => pathname.startsWith(p))) {
-    if (!session) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-
-    if (pathname.startsWith("/admin") && session.user.role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-
-    if (pathname.startsWith("/teacher") && session.user.role !== "TEACHER") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  if (isPublicPath(pathname)) {
+    return NextResponse.next()
   }
-
-  return NextResponse.next();
-}) as unknown as (req: Request) => Response | Promise<Response>;
+  const token = request.cookies.get('access_token')?.value
+  if (!token) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+  return NextResponse.next()
+}
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*", "/teacher/:path*"],
-};
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+}

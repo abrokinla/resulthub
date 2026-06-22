@@ -1,14 +1,15 @@
-import { auth } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { apiServer } from "@/lib/api";
 
 export default async function DashboardPage() {
-  const session = await auth();
-  if (!session) redirect("/login");
+  const token = (await cookies()).get("access_token")?.value;
+  if (!token) redirect("/login");
 
-  const role = session.user.role;
+  const user = await apiServer("auth/me/", { token });
 
-  if (role === "ADMIN") redirect("/admin");
-  if (role === "TEACHER") redirect("/teacher");
+  if (user.role === "ADMIN") redirect("/admin");
+  if (user.role === "TEACHER") redirect("/teacher");
 
   return null;
 }

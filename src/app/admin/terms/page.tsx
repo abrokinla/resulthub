@@ -1,25 +1,16 @@
-import { auth } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { query } from "@/lib/db";
+import { apiServer } from "@/lib/api";
 import Link from "next/link";
 
 export default async function TermsPage() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") redirect("/login");
+  const token = (await cookies()).get("access_token")?.value;
+  if (!token) redirect("/login");
 
-  const terms = await query<{
-    id: string;
-    name: string;
-    academicYear: string;
-    isCurrent: boolean;
-    startsAt: string;
-    endsAt: string;
-  }>(
-    `SELECT id, name, "academicYear", "isCurrent", "startsAt", "endsAt"
-     FROM "Term" WHERE "schoolId" = $1
-     ORDER BY "academicYear" DESC, name ASC`,
-    [session.user.schoolId]
-  );
+  const user = await apiServer("auth/me/", { token });
+  if (user.role !== "ADMIN") redirect("/login");
+
+  const terms = await apiServer("terms/", { token });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -41,25 +32,22 @@ export default async function TermsPage() {
             <div className="p-8 text-center text-gray-500 dark:text-gray-400">No terms defined.</div>
           ) : (
             <div className="divide-y">
-              {terms.map((t) => (
+              {terms.map((t: any) => (
                 <div key={t.id} className="p-4 flex items-center justify-between">
                   <div>
-                    <p className="font-medium">
-                      {t.name} Term - {t.academicYear}
-                    </p>
+                    <p className="font-medium">{t.name} Term - {t.academic_year}</p>
                     <p className="text-sm text-gray-500">
-                      {new Date(t.startsAt).toLocaleDateString()} -{" "}
-                      {new Date(t.endsAt).toLocaleDateString()}
+                      {new Date(t.starts_at).toLocaleDateString()} - {new Date(t.ends_at).toLocaleDateString()}
                     </p>
                   </div>
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${
-                      t.isCurrent
+                      t.is_current
                         ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
                         : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
                     }`}
                   >
-                    {t.isCurrent ? "Current" : "Inactive"}
+                    {t.is_current ? "Current" : "Inactive"}
                   </span>
                 </div>
               ))}

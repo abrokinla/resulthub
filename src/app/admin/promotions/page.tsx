@@ -1,35 +1,22 @@
-import { auth } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { queryOne, query } from "@/lib/db";
+import { apiServer } from "@/lib/api";
 import Link from "next/link";
 import { ProcessPromotions } from "./process-promotions";
 
 export default async function PromotionsPage() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") redirect("/login");
+  const token = (await cookies()).get("access_token")?.value;
+  if (!token) redirect("/login");
 
-  const currentTerm = await queryOne<{ name: string }>(
-    `SELECT name FROM "Term" WHERE "schoolId" = $1 AND "isCurrent" = true LIMIT 1`,
-    [session.user.schoolId]
-  );
+  const user = await apiServer("auth/me/", { token });
+  if (user.role !== "ADMIN") redirect("/login");
 
-  const students = await query<{
-    id: string;
-    firstName: string;
-    lastName: string;
-    regNumber: string;
-    status: string;
-    className: string;
-    classOrder: number;
-  }>(
-    `SELECT s.id, s."firstName", s."lastName", s."regNumber", s.status,
-            c.name AS "className", c."order" AS "classOrder"
-     FROM "Student" s
-     JOIN "Class" c ON s."classId" = c.id
-     WHERE s."schoolId" = $1
-     ORDER BY c."order" ASC, s."firstName" ASC`,
-    [session.user.schoolId]
-  );
+  const [terms, students] = await Promise.all([
+    apiServer("terms/", { token }),
+    apiServer("students/", { token }).catch(() => []),
+  ]);
+
+  const currentTerm = Array.isArray(terms) ? terms.find((t: any) => t.is_current) : null;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -49,7 +36,7 @@ export default async function PromotionsPage() {
             who meet the graduation criteria will advance to the next class.
           </p>
           <ProcessPromotions
-            schoolId={session.user.schoolId}
+            schoolId={user.schoolId}
             currentTermName={currentTerm?.name}
           />
         </div>
@@ -59,15 +46,11 @@ export default async function PromotionsPage() {
             <h2 className="font-semibold">Students by Class</h2>
           </div>
           <div className="divide-y">
-            {students.map((s) => (
+            {students.map((s: any) => (
               <div key={s.id} className="p-4 flex items-center justify-between">
                 <div>
-                  <p className="font-medium">
-                    {s.firstName} {s.lastName}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {s.className} - {s.regNumber}
-                  </p>
+                  <p className="font-medium">{s.first_name} {s.last_name}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{s.className} - {s.reg_number}</p>
                 </div>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${

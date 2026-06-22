@@ -1,32 +1,17 @@
-import { auth } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { query } from "@/lib/db";
+import { apiServer } from "@/lib/api";
 import Link from "next/link";
 import { ApproveButton } from "./approve-button";
 
 export default async function ResultsPage() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") redirect("/login");
+  const token = (await cookies()).get("access_token")?.value;
+  if (!token) redirect("/login");
 
-  const results = await query<{
-    id: string;
-    status: string;
-    firstName: string;
-    lastName: string;
-    regNumber: string;
-    termName: string;
-    updatedAt: string;
-  }>(
-    `SELECT r.id, r.status, s."firstName", s."lastName", s."regNumber",
-            t.name AS "termName", r."updatedAt"
-     FROM "Result" r
-     JOIN "Student" s ON r."studentId" = s.id
-     JOIN "Term" t ON r."termId" = t.id
-     WHERE s."schoolId" = $1
-     ORDER BY r."updatedAt" DESC
-     LIMIT 50`,
-    [session.user.schoolId]
-  );
+  const user = await apiServer("auth/me/", { token });
+  if (user.role !== "ADMIN") redirect("/login");
+
+  const results = await apiServer("results/?limit=50", { token });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -45,19 +30,15 @@ export default async function ResultsPage() {
             <h2 className="font-semibold">All Results</h2>
           </div>
           {results.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-              No results found.
-            </div>
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">No results found.</div>
           ) : (
             <div className="divide-y">
-              {results.map((r) => (
+              {results.map((r: any) => (
                 <div key={r.id} className="p-4 flex items-center justify-between">
                   <div>
-                    <p className="font-medium">
-                      {r.firstName} {r.lastName}
-                    </p>
+                    <p className="font-medium">{r.student?.first_name} {r.student?.last_name}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {r.regNumber} - {r.termName} Term
+                      {r.student?.reg_number} - {r.term?.name} Term
                     </p>
                   </div>
                   <div className="flex items-center gap-3">

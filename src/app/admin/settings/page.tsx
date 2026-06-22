@@ -1,34 +1,18 @@
-import { auth } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { queryOne } from "@/lib/db";
+import { apiServer } from "@/lib/api";
 import Link from "next/link";
 import { SettingsForm } from "./settings-form";
 
 export default async function SettingsPage() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") redirect("/login");
+  const token = (await cookies()).get("access_token")?.value;
+  if (!token) redirect("/login");
 
-  const school = await queryOne<{
-    id: string;
-    name: string;
-    email: string;
-    logoUrl: string | null;
-    address: string | null;
-    passThreshold: number;
-    distinctionThreshold: number;
-    graduationType: string;
-    graduationMinCumulative: number;
-  }>(
-    `SELECT s.id, s.name, s.email, s."logoUrl", s.address,
-            COALESCE(sc."passThreshold", 50) AS "passThreshold",
-            COALESCE(sc."distinctionThreshold", 75) AS "distinctionThreshold",
-            COALESCE(sc."graduationType", 'passAll') AS "graduationType",
-            COALESCE(sc."graduationMinCumulative", 50) AS "graduationMinCumulative"
-     FROM "School" s
-     LEFT JOIN "SchoolConfig" sc ON sc."schoolId" = s.id
-     WHERE s.id = $1`,
-    [session.user.schoolId]
-  );
+  const user = await apiServer("auth/me/", { token });
+  if (user.role !== "ADMIN") redirect("/login");
+
+  const config = await apiServer("config/", { token });
+  const school = await apiServer(`schools/${user.schoolSlug}/`, { token });
 
   if (!school) redirect("/admin");
 
@@ -57,12 +41,8 @@ export default async function SettingsPage() {
             </div>
             <div>
               <label className="text-sm text-gray-500 dark:text-gray-400">Logo</label>
-              {school.logoUrl ? (
-                <img
-                  src={school.logoUrl}
-                  alt="Logo"
-                  className="h-16 mt-1"
-                />
+              {school.logo_url ? (
+                <img src={school.logo_url} alt="Logo" className="h-16 mt-1" />
               ) : (
                 <p className="text-sm text-gray-400 dark:text-gray-500">No logo uploaded</p>
               )}
@@ -72,10 +52,10 @@ export default async function SettingsPage() {
 
         <SettingsForm config={{
           id: school.id,
-          passThreshold: school.passThreshold,
-          distinctionThreshold: school.distinctionThreshold,
-          graduationType: school.graduationType,
-          graduationMinCumulative: school.graduationMinCumulative,
+          passThreshold: config.pass_threshold,
+          distinctionThreshold: config.distinction_threshold,
+          graduationType: config.graduation_type,
+          graduationMinCumulative: config.graduation_min_cumulative,
         }} />
       </main>
     </div>
