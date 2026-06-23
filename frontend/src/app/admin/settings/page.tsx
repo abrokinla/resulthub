@@ -197,19 +197,19 @@ export default function SettingsPage() {
             <div className="flex-1 grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">School Name</label>
-                <input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2" />
+                <input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Email</label>
-                <input value={profile.email} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2" />
+                <input value={profile.email} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Phone</label>
-                <input value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2" />
+                <input value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Address</label>
-                <input value={profile.address} onChange={e => setProfile(p => ({ ...p, address: e.target.value }))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2" />
+                <input value={profile.address} onChange={e => setProfile(p => ({ ...p, address: e.target.value }))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" />
               </div>
             </div>
           </div>
@@ -222,11 +222,11 @@ export default function SettingsPage() {
           <div className="grid grid-cols-2 gap-4 max-w-md">
             <div>
               <label className="block text-sm font-medium mb-1">Pass Threshold (%)</label>
-              <input type="number" value={passThreshold} onChange={e => setPassThreshold(parseInt(e.target.value))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2" min={0} max={100} />
+              <input type="number" value={passThreshold} onChange={e => setPassThreshold(parseInt(e.target.value))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" min={0} max={100} />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Distinction Threshold (%)</label>
-              <input type="number" value={distinctionThreshold} onChange={e => setDistinctionThreshold(parseInt(e.target.value))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2" min={0} max={100} />
+              <input type="number" value={distinctionThreshold} onChange={e => setDistinctionThreshold(parseInt(e.target.value))} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" min={0} max={100} />
             </div>
           </div>
         </div>
@@ -243,7 +243,7 @@ export default function SettingsPage() {
                   <div className="px-4 py-3 space-y-3 border-t dark:border-gray-700">
                     <div>
                       <label className="block text-xs font-medium mb-1">Graduation Type</label>
-                      <select value={rule.type} onChange={e => updateRule(section.value, { type: e.target.value as any })} className="w-full border dark:border-gray-700 rounded px-2 py-1 text-sm">
+                      <select value={rule.type} onChange={e => updateRule(section.value, { type: e.target.value as any })} className="w-full border dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                         <option value="passAll">Pass all subjects</option>
                         <option value="cumulativeAbove">Cumulative above minimum</option>
                         <option value="custom">Custom (specific subjects)</option>
@@ -252,19 +252,19 @@ export default function SettingsPage() {
                     {rule.type === "cumulativeAbove" && (
                       <div>
                         <label className="block text-xs font-medium mb-1">Minimum Cumulative Score</label>
-                        <input type="number" value={rule.min_cumulative} onChange={e => updateRule(section.value, { min_cumulative: parseInt(e.target.value) })} className="w-full border dark:border-gray-700 rounded px-2 py-1 text-sm" min={0} max={100} />
+                        <input type="number" value={rule.min_cumulative} onChange={e => updateRule(section.value, { min_cumulative: parseInt(e.target.value) })} className="w-full border dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" min={0} max={100} />
                       </div>
                     )}
                     {rule.type === "custom" && (
                       <>
                         <div>
                           <label className="block text-xs font-medium mb-1">Required Subjects (must pass)</label>
-                          <input value={rule.required_subjects.join(", ")} onChange={e => updateRule(section.value, { required_subjects: e.target.value.split(",").map(s => s.trim()).filter(Boolean) })} className="w-full border dark:border-gray-700 rounded px-2 py-1 text-sm" placeholder="Mathematics, English" />
+                          <input value={rule.required_subjects.join(", ")} onChange={e => updateRule(section.value, { required_subjects: e.target.value.split(",").map(s => s.trim()).filter(Boolean) })} className="w-full border dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" placeholder="Mathematics, English" />
                           <p className="text-xs text-gray-400 mt-1">Comma-separated subject names</p>
                         </div>
                         <div>
                           <label className="block text-xs font-medium mb-1">Minimum Additional Subjects to Pass</label>
-                          <input type="number" value={rule.min_additional} onChange={e => updateRule(section.value, { min_additional: parseInt(e.target.value) })} className="w-full border dark:border-gray-700 rounded px-2 py-1 text-sm" min={0} />
+                          <input type="number" value={rule.min_additional} onChange={e => updateRule(section.value, { min_additional: parseInt(e.target.value) })} className="w-full border dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" min={0} />
                         </div>
                       </>
                     )}
@@ -288,7 +288,7 @@ export default function SettingsPage() {
               ))}
             </div>
             <div className="flex gap-2">
-              <input value={newTrait} onChange={e => setNewTrait(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTrait())} className="flex-1 border dark:border-gray-700 rounded px-2 py-1 text-sm" placeholder="Add trait..." />
+              <input value={newTrait} onChange={e => setNewTrait(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTrait())} className="flex-1 border dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" placeholder="Add trait..." />
               <button onClick={addTrait} className="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary-dark">Add</button>
             </div>
           </div>
@@ -303,7 +303,7 @@ export default function SettingsPage() {
               ))}
             </div>
             <div className="flex gap-2">
-              <input value={newSkill} onChange={e => setNewSkill(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSkill())} className="flex-1 border dark:border-gray-700 rounded px-2 py-1 text-sm" placeholder="Add skill..." />
+              <input value={newSkill} onChange={e => setNewSkill(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSkill())} className="flex-1 border dark:border-gray-700 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" placeholder="Add skill..." />
               <button onClick={addSkill} className="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary-dark">Add</button>
             </div>
           </div>
