@@ -1,7 +1,6 @@
 from datetime import date
 import cloudinary.uploader
 from rest_framework import viewsets, status
-import traceback
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -163,15 +162,4 @@ class HolidayViewSet(viewsets.ModelViewSet):
         serializer.save()
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def debug_exam_create(request):
-    try:
-        from schools.serializers import ExamPeriodSerializer
-        serializer = ExamPeriodSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({'errors': serializer.errors}, status=400)
-        obj = serializer.save()
-        return Response({'ok': str(obj.id)})
-    except Exception as e:
-        return Response({'error': str(e), 'traceback': traceback.format_exc()}, status=500)
+

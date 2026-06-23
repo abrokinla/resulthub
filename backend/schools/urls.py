@@ -11,7 +11,6 @@ urlpatterns = [
     path('schools/upload-logo/', views.upload_logo, name='upload-logo'),
     path('schools/<slug:slug>/', views.get_school, name='school-detail'),
     path('config/', views.school_config, name='school-config'),
-    path('debug-exam/', views.debug_exam_create, name='debug-exam'),
 ]
 
 urlpatterns += router.urls
