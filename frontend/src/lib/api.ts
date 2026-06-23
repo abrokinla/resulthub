@@ -64,7 +64,7 @@ function clearCookieHeader(name: string): string {
   return `${name}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
 }
 
-async function doFetch(url: string, method: string, headers: Record<string, string>, body?: string) {
+async function doFetch(url: string, method: string, headers: Record<string, string>, body?: string | ArrayBuffer) {
   const res = await fetch(url, { method, headers, body })
   const responseHeaders: Record<string, string> = {}
   res.headers.forEach((value, key) => {
@@ -96,7 +96,7 @@ export async function apiRoute(path: string, request: Request) {
 
   const normalizedPath = path.replace(/\/+$/, '')
   const url = `${API_URL}/api/${normalizedPath}/`
-  const body = request.body ? await request.text() : undefined
+  const body = request.body ? await request.arrayBuffer() : undefined
 
   const { res, responseHeaders } = await doFetch(url, request.method, headers, body)
 

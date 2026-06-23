@@ -108,9 +108,7 @@ export default function SettingsPage() {
     try {
       const formData = new FormData();
       formData.append("image", file);
-      const res = await api.post("/schools/upload-logo/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await api.post("/schools/upload-logo/", formData);
       setSchool(prev => prev ? { ...prev, logo_url: res.data.url } : null);
     } finally {
       setUploading(false);
