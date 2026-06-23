@@ -86,6 +86,12 @@ def register_school(request):
             rating_scale=DEFAULT_RATING_SCALE,
             affective_traits=DEFAULT_AFFECTIVE_TRAITS,
             psychomotor_skills=DEFAULT_PSYCHOMOTOR_SKILLS,
+            graduation_rules={
+                "NURSERY": {"type": "passAll", "min_cumulative": 50},
+                "PRIMARY": {"type": "passAll", "min_cumulative": 50},
+                "JUNIOR_SECONDARY": {"type": "custom", "required_subjects": [], "min_additional": 0},
+                "SENIOR_SECONDARY": {"type": "custom", "required_subjects": [], "min_additional": 0},
+            },
         )
 
         user = User(

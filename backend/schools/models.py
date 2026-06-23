@@ -31,6 +31,7 @@ class SchoolConfig(models.Model):
     distinction_threshold = models.IntegerField(default=75, db_column='distinctionThreshold')
     graduation_type = models.TextField(default='passAll', db_column='graduationType')
     graduation_min_cumulative = models.IntegerField(default=50, db_column='graduationMinCumulative')
+    graduation_rules = models.JSONField(default=dict, blank=True, db_column='graduationRules')
     rating_scale = models.JSONField(default=list, db_column='ratingScale')
     affective_traits = models.JSONField(default=list, db_column='affectiveTraits')
     psychomotor_skills = models.JSONField(default=list, db_column='psychomotorSkills')
