@@ -56,6 +56,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   // School profile
   const [profile, setProfile] = useState({ name: "", email: "", phone: "", address: "" });
@@ -91,6 +92,8 @@ export default function SettingsPage() {
         setGraduationRules(c.graduation_rules && Object.keys(c.graduation_rules).length > 0 ? c.graduation_rules : DEFAULT_RULES);
         setAffectiveTraits(c.affective_traits || []);
         setPsychomotorSkills(c.psychomotor_skills || []);
+      } catch (err: any) {
+        setError(err?.response?.data?.error || err?.message || "Failed to load settings");
       } finally {
         setLoading(false);
       }
@@ -175,6 +178,7 @@ export default function SettingsPage() {
         </div>
       </header>
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        {error && <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">{error}</div>}
         {/* School Profile */}
         <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm border dark:border-gray-700">
           <h2 className="font-semibold mb-4">School Profile</h2>

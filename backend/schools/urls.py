@@ -7,8 +7,8 @@ router.register('terms', views.TermViewSet, basename='term')
 router.register('exam-periods', views.ExamPeriodViewSet, basename='exam-period')
 
 urlpatterns = [
-    path('schools/<slug:slug>/', views.get_school, name='school-detail'),
     path('schools/upload-logo/', views.upload_logo, name='upload-logo'),
+    path('schools/<slug:slug>/', views.get_school, name='school-detail'),
     path('config/', views.school_config, name='school-config'),
 ]
 
