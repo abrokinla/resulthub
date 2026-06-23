@@ -86,13 +86,38 @@ class ExamPeriod(models.Model):
     type = models.TextField(choices=TYPE_CHOICES)
     name = models.TextField()
     is_open = models.BooleanField(default=False, db_column='isOpen')
-    starts_at = models.DateTimeField(null=True, blank=True, db_column='startsAt')
-    ends_at = models.DateTimeField(null=True, blank=True, db_column='endsAt')
+    starts_at = models.DateField(null=True, blank=True, db_column='startsAt')
+    ends_at = models.DateField(null=True, blank=True, db_column='endsAt')
     created_at = models.DateTimeField(auto_now_add=True, db_column='createdAt')
     updated_at = models.DateTimeField(auto_now=True, db_column='updatedAt')
 
     class Meta:
         db_table = '"ExamPeriod"'
+
+    def __str__(self):
+        return f'{self.name} ({self.term})'
+
+
+class Holiday(models.Model):
+    TYPE_CHOICES = [
+        ('MID_TERM', 'Mid Term Break'),
+        ('END_OF_TERM', 'End of Term Break'),
+    ]
+
+    id = CharIDField(primary_key=True, default=uuid.uuid4)
+    term = models.ForeignKey(
+        Term, on_delete=models.CASCADE, related_name='holidays',
+        db_column='termId'
+    )
+    name = models.TextField()
+    type = models.TextField(choices=TYPE_CHOICES)
+    starts_at = models.DateField(null=True, blank=True, db_column='startsAt')
+    ends_at = models.DateField(null=True, blank=True, db_column='endsAt')
+    created_at = models.DateTimeField(auto_now_add=True, db_column='createdAt')
+    updated_at = models.DateTimeField(auto_now=True, db_column='updatedAt')
+
+    class Meta:
+        db_table = '"Holiday"'
 
     def __str__(self):
         return f'{self.name} ({self.term})'

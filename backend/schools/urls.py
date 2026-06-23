@@ -5,6 +5,7 @@ from . import views
 router = DefaultRouter()
 router.register('terms', views.TermViewSet, basename='term')
 router.register('exam-periods', views.ExamPeriodViewSet, basename='exam-period')
+router.register('holidays', views.HolidayViewSet, basename='holiday')
 
 urlpatterns = [
     path('schools/upload-logo/', views.upload_logo, name='upload-logo'),

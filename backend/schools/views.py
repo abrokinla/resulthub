@@ -4,10 +4,10 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from schools.models import School, SchoolConfig, Term, ExamPeriod
+from schools.models import School, SchoolConfig, Term, ExamPeriod, Holiday
 from schools.serializers import (
     SchoolListSerializer, SchoolConfigSerializer,
-    TermSerializer, ExamPeriodSerializer,
+    TermSerializer, ExamPeriodSerializer, HolidaySerializer,
 )
 
 
@@ -146,3 +146,17 @@ class ExamPeriodViewSet(viewsets.ModelViewSet):
         period.is_open = False
         period.save(update_fields=['isOpen'])
         return Response({'status': 'ok'})
+
+
+class HolidayViewSet(viewsets.ModelViewSet):
+    serializer_class = HolidaySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.school_id:
+            return Holiday.objects.filter(term__school_id=user.school_id)
+        return Holiday.objects.none()
+
+    def perform_create(self, serializer):
+        serializer.save()

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import School, SchoolConfig, Term, ExamPeriod
+from .models import School, SchoolConfig, Term, ExamPeriod, Holiday
 
 
 class SchoolListSerializer(serializers.ModelSerializer):
@@ -26,4 +26,11 @@ class ExamPeriodSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExamPeriod
         fields = '__all__'
-        read_only_fields = ('id', 'term')
+        read_only_fields = ('id',)
+
+
+class HolidaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Holiday
+        fields = '__all__'
+        read_only_fields = ('id',)
