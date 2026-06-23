@@ -1,3 +1,4 @@
+import json
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -6,6 +7,62 @@ from django.utils import timezone
 from students.models import Student
 from .models import Result
 from .serializers import ResultSerializer
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def process_promotion(request):
+    class_id = request.data.get('classId')
+    term_id = request.data.get('termId')
+    if not class_id:
+        return Response({'error': 'classId required'}, status=status.HTTP_400_BAD_REQUEST)
+    students = Student.objects.filter(class_group_id=class_id, school_id=request.user.school_id)
+    promoted = 0
+    for student in students:
+        student.status = 'PROMOTED'
+        student.save(update_fields=['status'])
+        promoted += 1
+    return Response({'promoted': promoted})
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def approve_results_bulk(request):
+    class_id = request.data.get('classId')
+    term_id = request.data.get('termId')
+    if not class_id or not term_id:
+        return Response({'error': 'classId and termId required'}, status=status.HTTP_400_BAD_REQUEST)
+    updated = Result.objects.filter(
+        student__class_group_id=class_id,
+        student__school_id=request.user.school_id,
+        term_id=term_id,
+    ).update(
+        status='APPROVED',
+        approved_at=timezone.now(),
+        approved_by=request.user,
+    )
+    return Response({'approved': updated})
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def save_domains(request):
+    data = request.data
+    student_id = data.get('studentId')
+    term_id = data.get('termId')
+    if not student_id or not term_id:
+        return Response({'error': 'studentId and termId required'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        result = Result.objects.get(
+            student_id=student_id, term_id=term_id,
+            student__school_id=request.user.school_id,
+        )
+    except Result.DoesNotExist:
+        return Response({'error': 'Result not found'}, status=status.HTTP_404_NOT_FOUND)
+    result.affective_domain = data.get('affective', result.affective_domain)
+    result.psychomotor_data = data.get('psychomotor', result.psychomotor_data)
+    result.save(update_fields=['affective_domain', 'psychomotor_data'])
+    return Response({'message': 'Domains saved'})
 
 
 class ResultViewSet(viewsets.ModelViewSet):

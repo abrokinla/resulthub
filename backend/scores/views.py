@@ -1,7 +1,30 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from .models import Assessment, ScoreSummary
 from .serializers import AssessmentSerializer, ScoreSummarySerializer
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_scores(request):
+    scores = request.data.get('scores', [])
+    updated = 0
+    for item in scores:
+        summary_id = item.get('id')
+        if summary_id:
+            ScoreSummary.objects.filter(id=summary_id, student__school_id=request.user.school_id).update(
+                ca_score=item.get('caScore'),
+                ca1_score=item.get('ca1Score'),
+                ca2_score=item.get('ca2Score'),
+                exam_score=item.get('examScore'),
+                total_score=item.get('totalScore'),
+                grade=item.get('grade'),
+                is_fail=item.get('isFail'),
+            )
+            updated += 1
+    return Response({'updated': updated})
 
 
 class AssessmentViewSet(viewsets.ModelViewSet):

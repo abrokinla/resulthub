@@ -1,7 +1,11 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
-from .views import AssessmentViewSet, ScoreSummaryViewSet
+from . import views
 
 router = DefaultRouter()
-router.register('assessments', AssessmentViewSet, basename='assessment')
-router.register('scores', ScoreSummaryViewSet, basename='score')
-urlpatterns = router.urls
+router.register('assessments', views.AssessmentViewSet, basename='assessment')
+router.register('scores', views.ScoreSummaryViewSet, basename='score')
+urlpatterns = [
+    path('score/update/', views.update_scores, name='update-scores'),
+]
+urlpatterns += router.urls

@@ -1,7 +1,18 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from .models import Student, AcademicRecord
 from .serializers import StudentSerializer, AcademicRecordSerializer
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_student(request):
+    serializer = StudentSerializer(data=request.data, context={'request': request})
+    serializer.is_valid(raise_exception=True)
+    serializer.save(school_id=request.user.school_id)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class StudentViewSet(viewsets.ModelViewSet):

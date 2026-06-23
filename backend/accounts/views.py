@@ -161,6 +161,26 @@ def login(request):
     })
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_teacher(request):
+    user = request.user
+    if user.role != 'ADMIN':
+        return Response({'error': 'Only admins can create teachers'}, status=status.HTTP_403_FORBIDDEN)
+    data = request.data
+    name = data.get('name', '').strip()
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+    if not all([name, email, password]):
+        return Response({'error': 'Name, email, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(email=email).exists():
+        return Response({'error': 'A user with this email already exists'}, status=status.HTTP_409_CONFLICT)
+    teacher = User(email=email, name=name, role='TEACHER', school_id=user.school_id)
+    teacher.set_password(password)
+    teacher.save()
+    return Response(UserSerializer(teacher).data, status=status.HTTP_201_CREATED)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def me(request):

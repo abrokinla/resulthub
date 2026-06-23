@@ -86,8 +86,8 @@ class ExamPeriod(models.Model):
     type = models.TextField(choices=TYPE_CHOICES)
     name = models.TextField()
     is_open = models.BooleanField(default=False, db_column='isOpen')
-    starts_at = models.DateTimeField(db_column='startsAt')
-    ends_at = models.DateTimeField(db_column='endsAt')
+    starts_at = models.DateTimeField(null=True, blank=True, db_column='startsAt')
+    ends_at = models.DateTimeField(null=True, blank=True, db_column='endsAt')
     created_at = models.DateTimeField(auto_now_add=True, db_column='createdAt')
     updated_at = models.DateTimeField(auto_now=True, db_column='updatedAt')
 
