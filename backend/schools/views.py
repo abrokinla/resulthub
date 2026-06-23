@@ -84,7 +84,7 @@ class TermViewSet(viewsets.ModelViewSet):
         term = self.get_object()
         Term.objects.filter(school_id=request.user.school_id).update(is_current=False)
         term.is_current = True
-        term.save(update_fields=['isCurrent'])
+        term.save(update_fields=['is_current'])
         return Response({'status': 'ok'})
 
     @action(detail=False, methods=['post'])
@@ -93,7 +93,7 @@ class TermViewSet(viewsets.ModelViewSet):
         current = Term.objects.filter(school_id=school_id, is_current=True).first()
         if current:
             current.is_current = False
-            current.save(update_fields=['isCurrent'])
+            current.save(update_fields=['is_current'])
 
         order = ['FIRST', 'SECOND', 'THIRD']
         next_name = 'FIRST'
@@ -116,7 +116,7 @@ class TermViewSet(viewsets.ModelViewSet):
             term.is_current = True
             term.starts_at = None
             term.ends_at = None
-            term.save(update_fields=['isCurrent', 'startsAt', 'endsAt'])
+            term.save(update_fields=['is_current', 'starts_at', 'ends_at'])
         return Response(TermSerializer(term).data)
 
 
@@ -137,14 +137,14 @@ class ExamPeriodViewSet(viewsets.ModelViewSet):
     def open(self, request, pk=None):
         period = self.get_object()
         period.is_open = True
-        period.save(update_fields=['isOpen'])
+        period.save(update_fields=['is_open'])
         return Response({'status': 'ok'})
 
     @action(detail=True, methods=['post'])
     def close(self, request, pk=None):
         period = self.get_object()
         period.is_open = False
-        period.save(update_fields=['isOpen'])
+        period.save(update_fields=['is_open'])
         return Response({'status': 'ok'})
 
 
