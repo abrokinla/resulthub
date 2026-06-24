@@ -15,18 +15,14 @@ def add_enum_values(apps, schema_editor):
             cursor.execute('ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS \'SUBJECT_TEACHER\'')
 
 
-def convert_teacher_role(apps, schema_editor):
-    User = apps.get_model('accounts', 'User')
-    User.objects.filter(role='TEACHER').update(role='CLASS_TEACHER')
-
-
 class Migration(migrations.Migration):
+
+    atomic = False
 
     dependencies = [
         ('accounts', '0003_alter_user_role'),
     ]
 
     operations = [
-        migrations.RunPython(add_enum_values, migrations.RunPython.noop),
-        migrations.RunPython(convert_teacher_role, migrations.RunPython.noop),
+        migrations.RunPython(add_enum_values, migrations.RunPython.noop, atomic=False),
     ]
