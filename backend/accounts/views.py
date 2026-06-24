@@ -10,8 +10,15 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from schools.models import School, SchoolConfig, Term
 from classes.models import ClassGroup
-from .models import User
-from .serializers import UserSerializer
+from .models import User, TeacherProfile
+from .serializers import (
+    UserSerializer, CombinedProfileSerializer,
+    ChangePasswordSerializer,
+)
+from .services.teacher_invitation import (
+    send_teacher_invitation, resend_teacher_invitation as resend_invite,
+    _generate_password,
+)
 
 
 DEFAULT_CLASSES = [
@@ -170,15 +177,114 @@ def create_teacher(request):
     data = request.data
     name = data.get('name', '').strip()
     email = data.get('email', '').strip().lower()
-    password = data.get('password', '')
-    if not all([name, email, password]):
-        return Response({'error': 'Name, email, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+    if not name or not email:
+        return Response({'error': 'Name and email are required'}, status=status.HTTP_400_BAD_REQUEST)
     if User.objects.filter(email=email).exists():
         return Response({'error': 'A user with this email already exists'}, status=status.HTTP_409_CONFLICT)
+
+    password = _generate_password()
     teacher = User(email=email, name=name, role='TEACHER', school_id=user.school_id)
     teacher.set_password(password)
     teacher.save()
+    TeacherProfile.objects.create(user=teacher)
+    send_teacher_invitation(teacher, password)
     return Response(UserSerializer(teacher).data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def resend_teacher_invitation(request):
+    user = request.user
+    if user.role != 'ADMIN':
+        return Response({'error': 'Only admins can resend invitations'}, status=status.HTTP_403_FORBIDDEN)
+    teacher_id = request.data.get('teacherId')
+    if not teacher_id:
+        return Response({'error': 'teacherId is required'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        teacher = User.objects.get(id=teacher_id, school_id=user.school_id, role='TEACHER')
+    except User.DoesNotExist:
+        return Response({'error': 'Teacher not found'}, status=status.HTTP_404_NOT_FOUND)
+    resend_invite(teacher)
+    return Response({'status': 'ok'})
+
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def profile(request):
+    user = request.user
+    profile, _ = TeacherProfile.objects.get_or_create(user=user)
+
+    if request.method == 'GET':
+        return Response(CombinedProfileSerializer(user).data)
+
+    data = request.data
+    if 'name' in data:
+        user.name = data['name'].strip()
+        user.save(update_fields=['name'])
+    if 'phone' in data:
+        profile.phone = data['phone'].strip()
+    if 'address' in data:
+        profile.address = data['address'].strip()
+    profile.save()
+    return Response(CombinedProfileSerializer(user).data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    request.user.set_password(serializer.validated_data['new_password'])
+    request.user.save(update_fields=['password'])
+    return Response({'status': 'ok'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_profile_picture(request):
+    user = request.user
+    profile, _ = TeacherProfile.objects.get_or_create(user=user)
+    file = request.FILES.get('file')
+    if not file:
+        return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        import cloudinary.uploader
+        result = cloudinary.uploader.upload(
+            file, folder='teacher_profiles',
+            resource_type='image',
+            public_id=str(uuid.uuid4()),
+        )
+        profile.profile_picture = result['secure_url']
+        profile.save(update_fields=['profile_picture'])
+        return Response({'url': result['secure_url']})
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_credential(request):
+    user = request.user
+    profile, _ = TeacherProfile.objects.get_or_create(user=user)
+    file = request.FILES.get('file')
+    name = request.data.get('name', '').strip()
+    if not file or not name:
+        return Response({'error': 'File and name are required'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        import cloudinary.uploader
+        result = cloudinary.uploader.upload(
+            file, folder='teacher_credentials',
+            resource_type='auto',
+            public_id=str(uuid.uuid4()),
+        )
+        certs = list(profile.certificates) if profile.certificates else []
+        certs.append({'name': name, 'url': result['secure_url']})
+        profile.certificates = certs
+        profile.save(update_fields=['certificates'])
+        return Response({'certificates': certs})
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])

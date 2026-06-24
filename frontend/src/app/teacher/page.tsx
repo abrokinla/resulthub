@@ -20,6 +20,12 @@ export default async function TeacherDashboard() {
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600 dark:text-gray-300">{user.name}</span>
             <Link
+              href="/teacher/profile"
+              className="text-sm text-primary hover:underline"
+            >
+              Profile
+            </Link>
+            <Link
               href="/api/auth/logout"
               className="text-sm text-red-600 dark:text-red-400 hover:underline"
             >

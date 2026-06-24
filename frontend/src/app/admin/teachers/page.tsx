@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { apiServer } from "@/lib/api";
 import Link from "next/link";
 import { CreateTeacherForm } from "./create-form";
+import { ResendInvitationButton } from "./resend-button";
 
 export default async function TeachersPage() {
   const token = (await cookies()).get("access_token")?.value;
@@ -41,8 +42,11 @@ export default async function TeachersPage() {
                     <p className="font-medium">{t.name}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{t.email}</p>
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {t.classesCount ?? 0} classes
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {t.classesCount ?? 0} classes
+                    </span>
+                    <ResendInvitationButton teacherId={t.id} />
                   </div>
                 </div>
               ))}

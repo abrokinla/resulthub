@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 
 export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "" });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
@@ -19,8 +19,8 @@ export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
     try {
       await api.post("/teacher/create", { ...form, schoolId });
       setIsSuccess(true);
-      setMessage("Teacher created successfully!");
-      setForm({ name: "", email: "", password: "" });
+      setMessage("Teacher created. Login details sent to their email.");
+      setForm({ name: "", email: "" });
       router.refresh();
     } catch {
       setIsSuccess(false);
@@ -33,13 +33,13 @@ export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
     <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm border dark:border-gray-700">
       <h2 className="font-semibold mb-4">Create Teacher Account</h2>
       <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <input
             type="text"
             placeholder="Full Name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="border rounded-lg px-3 py-2"
+            className="border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
             required
           />
           <input
@@ -47,21 +47,12 @@ export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
             placeholder="Email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="border rounded-lg px-3 py-2"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            className="border rounded-lg px-3 py-2"
-            minLength={6}
+            className="border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
             required
           />
         </div>
         {message && (
-          <p className={`text-sm ${isSuccess ? "text-success dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+          <p className={`text-sm ${isSuccess ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
             {message}
           </p>
         )}

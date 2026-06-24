@@ -64,3 +64,23 @@ class User(models.Model):
     @classmethod
     def get_by_natural_key(cls, email):
         return cls.objects.get(email=email)
+
+
+class TeacherProfile(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='teacher_profile',
+        db_column='userId'
+    )
+    phone = models.TextField(null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
+    profile_picture = models.TextField(null=True, blank=True, db_column='profilePicture')
+    resume = models.TextField(null=True, blank=True)
+    certificates = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True, db_column='createdAt')
+    updated_at = models.DateTimeField(auto_now=True, db_column='updatedAt')
+
+    class Meta:
+        db_table = '"TeacherProfile"'
+
+    def __str__(self):
+        return f'Profile for {self.user.name}'
