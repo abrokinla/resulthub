@@ -12,6 +12,7 @@ urlpatterns = [
     path('auth/upload-credential/', views.upload_credential, name='upload-credential'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     path('users/', views.list_users, name='list-users'),
+    path('staff/create/', views.create_staff, name='create-staff'),
     path('teacher/create/', views.create_teacher, name='create-teacher'),
     path('teacher/resend-invitation/', views.resend_teacher_invitation, name='resend-teacher-invitation'),
 ]

@@ -66,6 +66,12 @@ export default async function AdminDashboard() {
             <h3 className="font-semibold">Teachers</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">Manage teacher accounts</p>
           </Link>
+          {["ADMIN", "PRINCIPAL", "VICE_PRINCIPAL"].includes(user.role) && (
+            <Link href="/admin/staff" className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/50 transition">
+              <h3 className="font-semibold">Staff</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Manage school staff roles</p>
+            </Link>
+          )}
           <Link href="/admin/classes" className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/50 transition">
             <h3 className="font-semibold">Classes</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">Manage classes & assignments</p>

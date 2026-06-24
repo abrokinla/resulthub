@@ -318,6 +318,40 @@ def me(request):
     })
 
 
+CAN_CREATE_ROLE = {
+    'ADMIN': ['PRINCIPAL', 'VICE_PRINCIPAL', 'SECRETARY', 'ACCOUNTANT', 'CLASS_TEACHER', 'SUBJECT_TEACHER'],
+    'PRINCIPAL': ['VICE_PRINCIPAL', 'SECRETARY', 'CLASS_TEACHER', 'SUBJECT_TEACHER'],
+    'VICE_PRINCIPAL': ['SECRETARY', 'CLASS_TEACHER', 'SUBJECT_TEACHER'],
+}
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_staff(request):
+    user = request.user
+    role = request.data.get('role', '').strip()
+    name = request.data.get('name', '').strip()
+    email = request.data.get('email', '').strip().lower()
+
+    creatable = CAN_CREATE_ROLE.get(user.role, [])
+    if role not in creatable:
+        return Response({'error': 'You cannot create this role'}, status=status.HTTP_403_FORBIDDEN)
+    if not name or not email:
+        return Response({'error': 'Name and email are required'}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(email=email).exists():
+        return Response({'error': 'A user with this email already exists'}, status=status.HTTP_409_CONFLICT)
+
+    password = _generate_password()
+    staff = User(email=email, name=name, role=role, school_id=user.school_id)
+    staff.set_password(password)
+    staff.save()
+    TeacherProfile.objects.create(user=staff)
+    email_sent = send_teacher_invitation(staff, password)
+    data = UserSerializer(staff).data
+    data['emailSent'] = email_sent
+    return Response(data, status=status.HTTP_201_CREATED)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_users(request):
