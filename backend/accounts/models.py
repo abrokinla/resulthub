@@ -8,8 +8,14 @@ from .fields import CharIDField
 
 class User(models.Model):
     ROLE_CHOICES = [
+        ('SUPER_ADMIN', 'Super Admin'),
         ('ADMIN', 'Admin'),
-        ('TEACHER', 'Teacher'),
+        ('PRINCIPAL', 'Principal'),
+        ('VICE_PRINCIPAL', 'Vice Principal'),
+        ('SECRETARY', 'Secretary'),
+        ('ACCOUNTANT', 'Accountant'),
+        ('CLASS_TEACHER', 'Class Teacher'),
+        ('SUBJECT_TEACHER', 'Subject Teacher'),
     ]
 
     id = CharIDField(primary_key=True, default=uuid.uuid4)
@@ -20,7 +26,7 @@ class User(models.Model):
     email = models.EmailField(unique=True)
     password = models.TextField(db_column='passwordHash', blank=True)
     name = models.TextField()
-    role = models.TextField(choices=ROLE_CHOICES, default='TEACHER')
+    role = models.TextField(choices=ROLE_CHOICES, default='ADMIN')
     phone = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, db_column='createdAt')

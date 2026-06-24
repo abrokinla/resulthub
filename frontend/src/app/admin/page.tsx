@@ -8,7 +8,7 @@ export default async function AdminDashboard() {
   if (!token) redirect("/login");
 
   const user = await apiServer("auth/me/", { token });
-  if (user.role !== "ADMIN") redirect("/login");
+  if (!["ADMIN", "PRINCIPAL", "VICE_PRINCIPAL", "SECRETARY"].includes(user.role)) redirect("/login");
 
   const schoolId = user.schoolId;
 

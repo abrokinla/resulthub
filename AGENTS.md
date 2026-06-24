@@ -69,6 +69,9 @@ web: gunicorn config.wsgi --workers 4 --bind 0.0.0.0:$PORT
 | `DJANGO_DEBUG` | `False` |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1,.onrender.com` |
 | `CORS_ALLOWED_ORIGINS` | `https://resulthub.pages.dev,http://localhost:3000` |
+| `BREVO_API_KEY` | `xkeysib-...` (for teacher invitation emails) |
+| `DEFAULT_FROM_EMAIL` | `noreply@resulthub.com` |
+| `FRONTEND_URL` | `https://resulthub.abrokinla.workers.dev` |
 
 ### Database migrations
 
@@ -89,7 +92,8 @@ frontend/
 └── package.json
 
 backend/
-├── accounts/         # Auth (register, login, me)
+├── accounts/         # Auth (register, login, me, profile, change-password, teacher CRUD)
+│   └── services/     #   email_service.py (Brevo), teacher_invitation.py
 ├── schools/          # School management, config, terms
 ├── classes/          # Class groups
 ├── students/         # Students + academic records

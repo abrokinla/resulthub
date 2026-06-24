@@ -7,7 +7,7 @@ class StudentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Student
-        fields = '__all__'
+        exclude = ('parent_pin_hash',)
         read_only_fields = ('id', 'school')
 
     def get_className(self, obj):

@@ -4,6 +4,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
+from accounts.permissions import HasPermission, user_has_permission
 from schools.models import School, SchoolConfig, Term, ExamPeriod, Holiday
 from schools.serializers import (
     SchoolListSerializer, SchoolConfigSerializer,
@@ -22,6 +24,8 @@ def get_school(request, slug):
     if request.method == 'GET':
         serializer = SchoolListSerializer(school)
         return Response(serializer.data)
+    if not user_has_permission(user, 'settings.manage'):
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     serializer = SchoolListSerializer(school, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
     serializer.save()
@@ -31,6 +35,8 @@ def get_school(request, slug):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def upload_logo(request):
+    if not user_has_permission(request.user, 'settings.manage'):
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     file = request.FILES.get('image')
     if not file:
         return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
@@ -58,8 +64,9 @@ def school_config(request):
     except SchoolConfig.DoesNotExist:
         return Response({'error': 'Config not found'}, status=status.HTTP_404_NOT_FOUND)
     if request.method == 'GET':
-        serializer = SchoolConfigSerializer(config)
-        return Response(serializer.data)
+        return Response(SchoolConfigSerializer(config).data)
+    if not user_has_permission(user, 'settings.manage'):
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     serializer = SchoolConfigSerializer(config, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
     serializer.save()
@@ -77,10 +84,24 @@ class TermViewSet(viewsets.ModelViewSet):
         return Term.objects.none()
 
     def perform_create(self, serializer):
+        if not user_has_permission(self.request.user, 'terms.manage'):
+            raise PermissionDenied('Permission denied')
         serializer.save(school_id=self.request.user.school_id)
+
+    def perform_update(self, serializer):
+        if not user_has_permission(self.request.user, 'terms.manage'):
+            raise PermissionDenied('Permission denied')
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if not user_has_permission(self.request.user, 'terms.manage'):
+            raise PermissionDenied('Permission denied')
+        instance.delete()
 
     @action(detail=True, methods=['post'])
     def set_current(self, request, pk=None):
+        if not user_has_permission(request.user, 'terms.manage'):
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         term = self.get_object()
         Term.objects.filter(school_id=request.user.school_id).update(is_current=False)
         term.is_current = True
@@ -89,6 +110,8 @@ class TermViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def advance(self, request):
+        if not user_has_permission(request.user, 'terms.manage'):
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         school_id = request.user.school_id
         current = Term.objects.filter(school_id=school_id, is_current=True).first()
         if current:
@@ -131,10 +154,24 @@ class ExamPeriodViewSet(viewsets.ModelViewSet):
         return ExamPeriod.objects.none()
 
     def perform_create(self, serializer):
+        if not user_has_permission(self.request.user, 'terms.manage'):
+            raise PermissionDenied('Permission denied')
         serializer.save()
+
+    def perform_update(self, serializer):
+        if not user_has_permission(self.request.user, 'terms.manage'):
+            raise PermissionDenied('Permission denied')
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if not user_has_permission(self.request.user, 'terms.manage'):
+            raise PermissionDenied('Permission denied')
+        instance.delete()
 
     @action(detail=True, methods=['post'])
     def open(self, request, pk=None):
+        if not user_has_permission(request.user, 'terms.manage'):
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         period = self.get_object()
         period.is_open = True
         period.save(update_fields=['is_open'])
@@ -142,6 +179,8 @@ class ExamPeriodViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def close(self, request, pk=None):
+        if not user_has_permission(request.user, 'terms.manage'):
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         period = self.get_object()
         period.is_open = False
         period.save(update_fields=['is_open'])
@@ -159,7 +198,19 @@ class HolidayViewSet(viewsets.ModelViewSet):
         return Holiday.objects.none()
 
     def perform_create(self, serializer):
+        if not user_has_permission(self.request.user, 'terms.manage'):
+            raise PermissionDenied('Permission denied')
         serializer.save()
+
+    def perform_update(self, serializer):
+        if not user_has_permission(self.request.user, 'terms.manage'):
+            raise PermissionDenied('Permission denied')
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if not user_has_permission(self.request.user, 'terms.manage'):
+            raise PermissionDenied('Permission denied')
+        instance.delete()
 
 
 

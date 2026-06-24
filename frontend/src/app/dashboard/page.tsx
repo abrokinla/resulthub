@@ -8,8 +8,8 @@ export default async function DashboardPage() {
 
   const user = await apiServer("auth/me/", { token });
 
-  if (user.role === "ADMIN") redirect("/admin");
-  if (user.role === "TEACHER") redirect("/teacher");
+  if (["ADMIN", "PRINCIPAL", "VICE_PRINCIPAL", "SECRETARY"].includes(user.role)) redirect("/admin");
+  if (["CLASS_TEACHER", "SUBJECT_TEACHER"].includes(user.role)) redirect("/teacher");
 
   return null;
 }

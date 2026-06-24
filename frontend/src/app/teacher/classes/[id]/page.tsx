@@ -15,7 +15,7 @@ export default async function ClassDetailPage({ params }: Props) {
   if (!token) redirect("/login");
 
   const user = await apiServer("auth/me/", { token });
-  if (!["TEACHER", "ADMIN"].includes(user.role)) redirect("/login");
+  if (!["CLASS_TEACHER", "SUBJECT_TEACHER", "ADMIN", "PRINCIPAL"].includes(user.role)) redirect("/login");
 
   const { id } = await params;
 

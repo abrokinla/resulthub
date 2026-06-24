@@ -35,6 +35,7 @@ class SchoolConfig(models.Model):
     rating_scale = models.JSONField(default=list, db_column='ratingScale')
     affective_traits = models.JSONField(default=list, db_column='affectiveTraits')
     psychomotor_skills = models.JSONField(default=list, db_column='psychomotorSkills')
+    print_permissions = models.JSONField(default=list, blank=True, db_column='printPermissions')
     created_at = models.DateTimeField(auto_now_add=True, db_column='createdAt')
     updated_at = models.DateTimeField(auto_now=True, db_column='updatedAt')
 

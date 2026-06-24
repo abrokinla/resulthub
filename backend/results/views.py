@@ -3,15 +3,33 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
+from accounts.permissions import HasPermission, user_has_permission
+from classes.models import ClassGroup
+from subjects.models import Subject
 from students.models import Student
-from .models import Result
-from .serializers import ResultSerializer
+from results.models import Result
+from results.serializers import ResultSerializer
+
+
+def _get_visible_class_ids(user):
+    if user.role == 'CLASS_TEACHER':
+        return list(ClassGroup.objects.filter(
+            teacher_id=user.id, school_id=user.school_id
+        ).values_list('id', flat=True))
+    elif user.role == 'SUBJECT_TEACHER':
+        return list(Subject.objects.filter(
+            teacher_id=user.id, school_id=user.school_id
+        ).values_list('class_group_id', flat=True).distinct())
+    return None
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def process_promotion(request):
+    if not user_has_permission(request.user, 'promotion.process'):
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     class_id = request.data.get('classId')
     term_id = request.data.get('termId')
     if not class_id:
@@ -28,6 +46,8 @@ def process_promotion(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def approve_results_bulk(request):
+    if not user_has_permission(request.user, 'results.approve'):
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     class_id = request.data.get('classId')
     term_id = request.data.get('termId')
     if not class_id or not term_id:
@@ -47,6 +67,9 @@ def approve_results_bulk(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def save_domains(request):
+    if not user_has_permission(request.user, 'results.submit') and \
+       not user_has_permission(request.user, 'results.approve'):
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     data = request.data
     student_id = data.get('studentId')
     term_id = data.get('termId')
@@ -74,6 +97,9 @@ class ResultViewSet(viewsets.ModelViewSet):
         if not user.school_id:
             return Result.objects.none()
         qs = Result.objects.filter(student__school_id=user.school_id)
+        visible_class_ids = _get_visible_class_ids(user)
+        if visible_class_ids is not None:
+            qs = qs.filter(student__class_group_id__in=visible_class_ids)
         student_id = self.request.query_params.get('studentId')
         if student_id:
             qs = qs.filter(student_id=student_id)
@@ -92,6 +118,8 @@ class ResultViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def approve_result(request, pk):
+    if not user_has_permission(request.user, 'results.approve'):
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     try:
         result = Result.objects.get(pk=pk, student__school_id=request.user.school_id)
     except Result.DoesNotExist:
@@ -110,12 +138,16 @@ def get_computed_results(request, class_id, term_id):
     if not user.school_id:
         return Response({'error': 'No school associated'}, status=status.HTTP_400_BAD_REQUEST)
 
-    results = Result.objects.filter(
+    qs = Result.objects.filter(
         student__class_group_id=class_id,
         student__school_id=user.school_id,
         term_id=term_id,
-    ).select_related('student', 'term').order_by('student__first_name')
+    )
+    visible_class_ids = _get_visible_class_ids(user)
+    if visible_class_ids is not None and int(class_id) not in visible_class_ids:
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
 
+    results = qs.select_related('student', 'term').order_by('student__first_name')
     serializer = ResultSerializer(results, many=True)
     return Response(serializer.data)
 

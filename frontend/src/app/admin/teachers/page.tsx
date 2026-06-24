@@ -10,7 +10,7 @@ export default async function TeachersPage() {
   if (!token) redirect("/login");
 
   const user = await apiServer("auth/me/", { token });
-  if (user.role !== "ADMIN") redirect("/login");
+  if (!["ADMIN", "PRINCIPAL"].includes(user.role)) redirect("/login");
 
   const teachers = await apiServer("users/?role=TEACHER", { token }).catch(() => []);
 

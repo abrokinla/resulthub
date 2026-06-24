@@ -11,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from schools.models import School, SchoolConfig, Term
 from classes.models import ClassGroup
 from .models import User, TeacherProfile
+from .permissions import HasPermission, user_has_permission
 from .serializers import (
     UserSerializer, CombinedProfileSerializer,
     ChangePasswordSerializer,
@@ -172,18 +173,21 @@ def login(request):
 @permission_classes([IsAuthenticated])
 def create_teacher(request):
     user = request.user
-    if user.role != 'ADMIN':
-        return Response({'error': 'Only admins can create teachers'}, status=status.HTTP_403_FORBIDDEN)
+    if not user_has_permission(user, 'users.manage_teachers'):
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     data = request.data
     name = data.get('name', '').strip()
     email = data.get('email', '').strip().lower()
+    role = data.get('role', 'CLASS_TEACHER')
+    if role not in ('CLASS_TEACHER', 'SUBJECT_TEACHER'):
+        return Response({'error': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
     if not name or not email:
         return Response({'error': 'Name and email are required'}, status=status.HTTP_400_BAD_REQUEST)
     if User.objects.filter(email=email).exists():
         return Response({'error': 'A user with this email already exists'}, status=status.HTTP_409_CONFLICT)
 
     password = _generate_password()
-    teacher = User(email=email, name=name, role='TEACHER', school_id=user.school_id)
+    teacher = User(email=email, name=name, role=role, school_id=user.school_id)
     teacher.set_password(password)
     teacher.save()
     TeacherProfile.objects.create(user=teacher)
@@ -197,13 +201,16 @@ def create_teacher(request):
 @permission_classes([IsAuthenticated])
 def resend_teacher_invitation(request):
     user = request.user
-    if user.role != 'ADMIN':
-        return Response({'error': 'Only admins can resend invitations'}, status=status.HTTP_403_FORBIDDEN)
+    if not user_has_permission(user, 'users.manage_teachers'):
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     teacher_id = request.data.get('teacherId')
     if not teacher_id:
         return Response({'error': 'teacherId is required'}, status=status.HTTP_400_BAD_REQUEST)
     try:
-        teacher = User.objects.get(id=teacher_id, school_id=user.school_id, role='TEACHER')
+        teacher = User.objects.get(
+            id=teacher_id, school_id=user.school_id,
+            role__in=['CLASS_TEACHER', 'SUBJECT_TEACHER'],
+        )
     except User.DoesNotExist:
         return Response({'error': 'Teacher not found'}, status=status.HTTP_404_NOT_FOUND)
     resend_invite(teacher)
@@ -293,6 +300,13 @@ def upload_credential(request):
 @permission_classes([IsAuthenticated])
 def me(request):
     user = request.user
+    profile_complete = True
+    if user.role in ('CLASS_TEACHER', 'SUBJECT_TEACHER'):
+        try:
+            tp = user.teacher_profile
+            profile_complete = bool(tp.phone and tp.profile_picture)
+        except TeacherProfile.DoesNotExist:
+            profile_complete = False
     return Response({
         'id': str(user.id),
         'email': user.email,
@@ -300,6 +314,7 @@ def me(request):
         'role': user.role,
         'schoolId': str(user.school_id) if user.school_id else None,
         'schoolSlug': user.school.slug if user.school else None,
+        'profileComplete': profile_complete,
     })
 
 
@@ -311,7 +326,9 @@ def list_users(request):
         return Response({'error': 'No school associated'}, status=400)
     qs = User.objects.filter(school_id=user.school_id)
     role = request.query_params.get('role')
-    if role:
+    if role == 'TEACHER':
+        qs = qs.filter(role__in=['CLASS_TEACHER', 'SUBJECT_TEACHER'])
+    elif role:
         qs = qs.filter(role=role)
     serializer = UserSerializer(qs, many=True)
     return Response(serializer.data)

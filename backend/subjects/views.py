@@ -2,14 +2,18 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import Subject, StudentSubject
-from .serializers import SubjectSerializer, StudentSubjectSerializer
+from accounts.permissions import HasPermission, user_has_permission
+from accounts.models import User
+from subjects.models import Subject, StudentSubject
+from subjects.serializers import SubjectSerializer, StudentSubjectSerializer
 from students.models import Student
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_subject(request):
+    if not user_has_permission(request.user, 'subjects.manage'):
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     raw = {}
     for k, v in request.data.items():
         if isinstance(v, list):
@@ -31,6 +35,8 @@ def create_subject(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def assign_all_subjects(request):
+    if not user_has_permission(request.user, 'subjects.manage'):
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     class_id = request.data.get('classId')
     subject_ids = request.data.get('subjectIds', [])
     if not class_id or not subject_ids:
@@ -59,7 +65,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
         class_id = self.request.query_params.get('classId')
         if class_id:
             qs = qs.filter(class_group_id=class_id)
-        if user.role == 'TEACHER':
+        if user.role in ('CLASS_TEACHER', 'SUBJECT_TEACHER'):
             qs = qs.filter(teacher_id=user.id)
         return qs
 
