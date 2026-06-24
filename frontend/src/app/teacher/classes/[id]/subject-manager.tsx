@@ -100,7 +100,7 @@ export function SubjectManager({
           <select
             value={teacherId}
             onChange={(e) => setTeacherId(e.target.value)}
-            className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 text-sm"
+            className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:text-white"
           >
             <option value="">Assign to teacher (optional)</option>
             {teachers.map((t) => (

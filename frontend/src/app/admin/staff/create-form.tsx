@@ -46,7 +46,7 @@ export function CreateStaffForm({ schoolId }: { schoolId: string }) {
             placeholder="Full Name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
+            className="border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
             required
           />
           <input
@@ -54,13 +54,13 @@ export function CreateStaffForm({ schoolId }: { schoolId: string }) {
             placeholder="Email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
+            className="border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
             required
           />
           <select
             value={form.role}
             onChange={(e) => setForm({ ...form, role: e.target.value })}
-            className="border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
+            className="border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
           >
             {STAFF_ROLES.map((r) => (
               <option key={r.value} value={r.value}>{r.label}</option>

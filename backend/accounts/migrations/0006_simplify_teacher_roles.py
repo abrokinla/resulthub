@@ -13,10 +13,12 @@ def update_enum_and_data(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    atomic = False
+
     dependencies = [
         ('accounts', '0005_convert_teacher_role'),
     ]
 
     operations = [
-        migrations.RunPython(update_enum_and_data, migrations.RunPython.noop),
+        migrations.RunPython(update_enum_and_data, migrations.RunPython.noop, atomic=False),
     ]

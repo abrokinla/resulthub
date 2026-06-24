@@ -75,7 +75,7 @@ export function ScoreEntry({
         <select
           value={selectedSubject}
           onChange={(e) => setSelectedSubject(e.target.value)}
-          className="border dark:border-gray-700 rounded-lg px-3 py-2 text-sm"
+          className="border dark:border-gray-700 rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:text-white"
         >
           {subjects.map((s) => (
             <option key={s.id} value={s.id}>

@@ -101,11 +101,11 @@ export default function ClassesPage() {
           <form onSubmit={handleAdd} className="flex gap-3 items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium mb-1">Class Name</label>
-              <input value={newName} onChange={e => setNewName(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2" placeholder="e.g. Nursery 3" required />
+              <input value={newName} onChange={e => setNewName(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-white" placeholder="e.g. Nursery 3" required />
             </div>
             <div className="w-48">
               <label className="block text-sm font-medium mb-1">Section</label>
-              <select value={newSection} onChange={e => setNewSection(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2">
+              <select value={newSection} onChange={e => setNewSection(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-white">
                 <option value="NURSERY">Nursery</option>
                 <option value="PRIMARY">Primary</option>
                 <option value="JUNIOR_SECONDARY">Junior Secondary</option>
@@ -127,8 +127,8 @@ export default function ClassesPage() {
                   <div className="flex-1">
                     {editingId === cls.id ? (
                       <div className="flex gap-2 items-center">
-                        <input value={editName} onChange={e => setEditName(e.target.value)} className="border dark:border-gray-700 rounded px-2 py-1 text-sm flex-1" />
-                        <select value={editSection} onChange={e => setEditSection(e.target.value)} className="border dark:border-gray-700 rounded px-2 py-1 text-sm">
+                        <input value={editName} onChange={e => setEditName(e.target.value)} className="border dark:border-gray-700 rounded px-2 py-1 text-sm flex-1 dark:bg-gray-800 dark:text-white" />
+                        <select value={editSection} onChange={e => setEditSection(e.target.value)} className="border dark:border-gray-700 rounded px-2 py-1 text-sm dark:bg-gray-800 dark:text-white">
                           <option value="NURSERY">Nursery</option>
                           <option value="PRIMARY">Primary</option>
                           <option value="JUNIOR_SECONDARY">Junior Secondary</option>
@@ -149,7 +149,7 @@ export default function ClassesPage() {
                     <select
                       value={cls.teacher ?? ""}
                       onChange={e => handleAssignTeacher(cls.id, e.target.value || null)}
-                      className="text-sm border dark:border-gray-700 rounded-lg px-2 py-1 w-full"
+                      className="text-sm border dark:border-gray-700 rounded-lg px-2 py-1 w-full dark:bg-gray-800 dark:text-white"
                     >
                       <option value="">Unassigned</option>
                       {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}

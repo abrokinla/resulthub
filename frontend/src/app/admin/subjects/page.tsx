@@ -115,15 +115,15 @@ export default function SubjectsPage() {
           <form onSubmit={handleAdd} className="flex gap-3 items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium mb-1">Subject Name</label>
-              <input value={newName} onChange={e => setNewName(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2" placeholder="e.g. Mathematics" required />
+              <input value={newName} onChange={e => setNewName(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-white" placeholder="e.g. Mathematics" required />
             </div>
             <div className="w-32">
               <label className="block text-sm font-medium mb-1">Code</label>
-              <input value={newCode} onChange={e => setNewCode(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2" placeholder="e.g. MTH" />
+              <input value={newCode} onChange={e => setNewCode(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-white" placeholder="e.g. MTH" />
             </div>
             <div className="w-48">
               <label className="block text-sm font-medium mb-1">Class</label>
-              <select value={newClassId} onChange={e => setNewClassId(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2" required>
+              <select value={newClassId} onChange={e => setNewClassId(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-white" required>
                 <option value="">Select class</option>
                 {classes.sort((a, b) => a.name.localeCompare(b.name)).map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
@@ -132,7 +132,7 @@ export default function SubjectsPage() {
             </div>
             <div className="w-48">
               <label className="block text-sm font-medium mb-1">Assign Teacher</label>
-              <select value={newTeacherId} onChange={e => setNewTeacherId(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2">
+              <select value={newTeacherId} onChange={e => setNewTeacherId(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-white">
                 <option value="">Unassigned</option>
                 {staff.map(s => (
                   <option key={s.id} value={s.id}>{s.name} ({ROLE_LABELS[s.role] || s.role})</option>
@@ -158,7 +158,7 @@ export default function SubjectsPage() {
                       <select
                         value={subj.teacher ?? ""}
                         onChange={e => handleAssignTeacher(subj.id, e.target.value || null)}
-                        className="text-sm border dark:border-gray-700 rounded-lg px-2 py-1 w-full"
+                        className="text-sm border dark:border-gray-700 rounded-lg px-2 py-1 w-full dark:bg-gray-800 dark:text-white"
                       >
                         <option value="">Unassigned</option>
                         {staff.map(s => (
