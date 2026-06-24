@@ -17,13 +17,14 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
         if not user.school_id:
             return ClassGroup.objects.none()
         qs = ClassGroup.objects.filter(school_id=user.school_id)
-        if user.role == 'CLASS_TEACHER':
-            qs = qs.filter(teacher_id=user.id)
-        elif user.role == 'SUBJECT_TEACHER':
-            class_ids = Subject.objects.filter(
+        if user.role == 'TEACHER':
+            class_ids = list(ClassGroup.objects.filter(
                 teacher_id=user.id, school_id=user.school_id
-            ).values_list('class_group_id', flat=True).distinct()
-            qs = qs.filter(id__in=list(class_ids))
+            ).values_list('id', flat=True))
+            subject_class_ids = list(Subject.objects.filter(
+                teacher_id=user.id, school_id=user.school_id
+            ).values_list('class_group_id', flat=True).distinct())
+            qs = qs.filter(id__in=class_ids + subject_class_ids)
         return qs
 
     def perform_create(self, serializer):

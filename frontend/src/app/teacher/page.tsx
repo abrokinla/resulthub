@@ -8,7 +8,7 @@ export default async function TeacherDashboard() {
   if (!token) redirect("/login");
 
   const user = await apiServer("auth/me/", { token });
-  if (!["CLASS_TEACHER", "SUBJECT_TEACHER"].includes(user.role)) redirect("/login");
+  if (user.role !== "TEACHER") redirect("/login");
 
   if (!user.profileComplete) redirect("/teacher/profile");
 

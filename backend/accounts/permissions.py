@@ -63,7 +63,7 @@ ROLE_PERMISSIONS = {
         'reports.view',
         'results.print',
     ],
-    'CLASS_TEACHER': [
+    'TEACHER': [
         'classes.view_own',
         'subjects.view_own',
         'students.view_own',
@@ -71,14 +71,6 @@ ROLE_PERMISSIONS = {
         'results.view_own',
         'results.submit',
         'attendance.manage_own',
-        'profile.manage',
-    ],
-    'SUBJECT_TEACHER': [
-        'subjects.view_own',
-        'students.view_own',
-        'scores.manage_own',
-        'results.view_own',
-        'results.submit',
         'profile.manage',
     ],
 }

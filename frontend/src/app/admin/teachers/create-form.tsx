@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 
 export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", email: "", role: "CLASS_TEACHER" });
+  const [form, setForm] = useState({ name: "", email: "" });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
@@ -17,10 +17,10 @@ export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
     setMessage("");
 
     try {
-      await api.post("/teacher/create", { name: form.name, email: form.email, role: form.role, schoolId });
+      await api.post("/teacher/create", { name: form.name, email: form.email, schoolId });
       setIsSuccess(true);
       setMessage("Teacher created. Login details sent to their email.");
-      setForm({ name: "", email: "", role: "CLASS_TEACHER" });
+      setForm({ name: "", email: "" });
       router.refresh();
     } catch {
       setIsSuccess(false);
@@ -32,6 +32,9 @@ export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm border dark:border-gray-700">
       <h2 className="font-semibold mb-4">Create Teacher Account</h2>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+        After creating the teacher, assign them to a class or subject to give them access.
+      </p>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <input
@@ -50,14 +53,6 @@ export function CreateTeacherForm({ schoolId }: { schoolId: string }) {
             className="border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
             required
           />
-          <select
-            value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value })}
-            className="border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
-          >
-            <option value="CLASS_TEACHER">Class Teacher</option>
-            <option value="SUBJECT_TEACHER">Subject Teacher</option>
-          </select>
         </div>
         {message && (
           <p className={`text-sm ${isSuccess ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>

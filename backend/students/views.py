@@ -30,16 +30,14 @@ class StudentViewSet(viewsets.ModelViewSet):
         if not user.school_id:
             return Student.objects.none()
         qs = Student.objects.filter(school_id=user.school_id)
-        if user.role in ('CLASS_TEACHER', 'SUBJECT_TEACHER'):
-            if user.role == 'CLASS_TEACHER':
-                class_ids = ClassGroup.objects.filter(
-                    teacher_id=user.id, school_id=user.school_id
-                ).values_list('id', flat=True)
-            else:
-                class_ids = Subject.objects.filter(
-                    teacher_id=user.id, school_id=user.school_id
-                ).values_list('class_group_id', flat=True).distinct()
-            qs = qs.filter(class_group_id__in=list(class_ids))
+        if user.role == 'TEACHER':
+            class_ids = list(ClassGroup.objects.filter(
+                teacher_id=user.id, school_id=user.school_id
+            ).values_list('id', flat=True))
+            subject_class_ids = list(Subject.objects.filter(
+                teacher_id=user.id, school_id=user.school_id
+            ).values_list('class_group_id', flat=True).distinct())
+            qs = qs.filter(class_group_id__in=class_ids + subject_class_ids)
         class_id = self.request.query_params.get('classId')
         if class_id:
             qs = qs.filter(class_group_id=class_id)
@@ -71,16 +69,14 @@ class AcademicRecordViewSet(viewsets.ModelViewSet):
         if not user.school_id:
             return AcademicRecord.objects.none()
         qs = AcademicRecord.objects.filter(student__school_id=user.school_id)
-        if user.role in ('CLASS_TEACHER', 'SUBJECT_TEACHER'):
-            if user.role == 'CLASS_TEACHER':
-                class_ids = ClassGroup.objects.filter(
-                    teacher_id=user.id, school_id=user.school_id
-                ).values_list('id', flat=True)
-            else:
-                class_ids = Subject.objects.filter(
-                    teacher_id=user.id, school_id=user.school_id
-                ).values_list('class_group_id', flat=True).distinct()
-            qs = qs.filter(student__class_group_id__in=list(class_ids))
+        if user.role == 'TEACHER':
+            class_ids = list(ClassGroup.objects.filter(
+                teacher_id=user.id, school_id=user.school_id
+            ).values_list('id', flat=True))
+            subject_class_ids = list(Subject.objects.filter(
+                teacher_id=user.id, school_id=user.school_id
+            ).values_list('class_group_id', flat=True).distinct())
+            qs = qs.filter(student__class_group_id__in=class_ids + subject_class_ids)
         student_id = self.request.query_params.get('studentId')
         if student_id:
             qs = qs.filter(student_id=student_id)

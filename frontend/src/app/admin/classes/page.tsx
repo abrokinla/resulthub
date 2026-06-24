@@ -41,7 +41,7 @@ export default function ClassesPage() {
     try {
       const [classesData, teachersData] = await Promise.all([
         api.get("/classes/"),
-        api.get("/users/?role=TEACHER").catch(() => ({ data: [] })),
+        api.get("/users/").catch(() => ({ data: [] })),
       ]);
       setClasses(classesData.data);
       setTeachers(teachersData.data);

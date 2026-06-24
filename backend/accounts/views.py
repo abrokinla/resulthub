@@ -178,16 +178,13 @@ def create_teacher(request):
     data = request.data
     name = data.get('name', '').strip()
     email = data.get('email', '').strip().lower()
-    role = data.get('role', 'CLASS_TEACHER')
-    if role not in ('CLASS_TEACHER', 'SUBJECT_TEACHER'):
-        return Response({'error': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
     if not name or not email:
         return Response({'error': 'Name and email are required'}, status=status.HTTP_400_BAD_REQUEST)
     if User.objects.filter(email=email).exists():
         return Response({'error': 'A user with this email already exists'}, status=status.HTTP_409_CONFLICT)
 
     password = _generate_password()
-    teacher = User(email=email, name=name, role=role, school_id=user.school_id)
+    teacher = User(email=email, name=name, role='TEACHER', school_id=user.school_id)
     teacher.set_password(password)
     teacher.save()
     TeacherProfile.objects.create(user=teacher)
@@ -209,7 +206,7 @@ def resend_teacher_invitation(request):
     try:
         teacher = User.objects.get(
             id=teacher_id, school_id=user.school_id,
-            role__in=['CLASS_TEACHER', 'SUBJECT_TEACHER'],
+            role='TEACHER',
         )
     except User.DoesNotExist:
         return Response({'error': 'Teacher not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -301,7 +298,7 @@ def upload_credential(request):
 def me(request):
     user = request.user
     profile_complete = True
-    if user.role in ('CLASS_TEACHER', 'SUBJECT_TEACHER'):
+    if user.role == 'TEACHER':
         try:
             tp = user.teacher_profile
             profile_complete = bool(tp.phone and tp.profile_picture)
@@ -360,9 +357,7 @@ def list_users(request):
         return Response({'error': 'No school associated'}, status=400)
     qs = User.objects.filter(school_id=user.school_id)
     role = request.query_params.get('role')
-    if role == 'TEACHER':
-        qs = qs.filter(role__in=['CLASS_TEACHER', 'SUBJECT_TEACHER'])
-    elif role:
+    if role:
         qs = qs.filter(role=role)
     serializer = UserSerializer(qs, many=True)
     return Response(serializer.data)

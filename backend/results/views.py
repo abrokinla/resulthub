@@ -14,14 +14,14 @@ from results.serializers import ResultSerializer
 
 
 def _get_visible_class_ids(user):
-    if user.role == 'CLASS_TEACHER':
-        return list(ClassGroup.objects.filter(
+    if user.role == 'TEACHER':
+        class_ids = list(ClassGroup.objects.filter(
             teacher_id=user.id, school_id=user.school_id
         ).values_list('id', flat=True))
-    elif user.role == 'SUBJECT_TEACHER':
-        return list(Subject.objects.filter(
+        subject_class_ids = list(Subject.objects.filter(
             teacher_id=user.id, school_id=user.school_id
         ).values_list('class_group_id', flat=True).distinct())
+        return class_ids + subject_class_ids
     return None
 
 

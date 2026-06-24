@@ -14,8 +14,7 @@ class User(models.Model):
         ('VICE_PRINCIPAL', 'Vice Principal'),
         ('SECRETARY', 'Secretary'),
         ('ACCOUNTANT', 'Accountant'),
-        ('CLASS_TEACHER', 'Class Teacher'),
-        ('SUBJECT_TEACHER', 'Subject Teacher'),
+        ('TEACHER', 'Teacher'),
     ]
 
     id = CharIDField(primary_key=True, default=uuid.uuid4)

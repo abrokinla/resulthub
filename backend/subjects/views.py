@@ -65,7 +65,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
         class_id = self.request.query_params.get('classId')
         if class_id:
             qs = qs.filter(class_group_id=class_id)
-        if user.role in ('CLASS_TEACHER', 'SUBJECT_TEACHER'):
+        if user.role == 'TEACHER':
             qs = qs.filter(teacher_id=user.id)
         return qs
 
