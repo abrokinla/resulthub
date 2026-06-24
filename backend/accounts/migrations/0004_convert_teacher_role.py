@@ -3,6 +3,18 @@
 from django.db import migrations
 
 
+def add_enum_values(apps, schema_editor):
+    if schema_editor.connection.vendor == 'postgresql':
+        with schema_editor.connection.cursor() as cursor:
+            cursor.execute('ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS \'SUPER_ADMIN\'')
+            cursor.execute('ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS \'PRINCIPAL\'')
+            cursor.execute('ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS \'VICE_PRINCIPAL\'')
+            cursor.execute('ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS \'SECRETARY\'')
+            cursor.execute('ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS \'ACCOUNTANT\'')
+            cursor.execute('ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS \'CLASS_TEACHER\'')
+            cursor.execute('ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS \'SUBJECT_TEACHER\'')
+
+
 def convert_teacher_role(apps, schema_editor):
     User = apps.get_model('accounts', 'User')
     User.objects.filter(role='TEACHER').update(role='CLASS_TEACHER')
@@ -15,5 +27,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(convert_teacher_role, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(add_enum_values, migrations.RunPython.noop),
+        migrations.RunPython(convert_teacher_role, migrations.RunPython.noop),
     ]
