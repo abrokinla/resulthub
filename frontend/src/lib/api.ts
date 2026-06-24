@@ -35,8 +35,10 @@ export async function apiServer(path: string, options: ApiOptions = {}) {
     headers['Content-Type'] = 'application/json'
   }
 
-  const normalizedPath = path.replace(/\/+$/, '')
-  const res = await fetch(`${API_URL}/api/${normalizedPath}/`, {
+  const [basePath, queryString] = path.split('?')
+  const normalizedPath = basePath.replace(/\/+$/, '')
+  const url = `${API_URL}/api/${normalizedPath}/${queryString ? '?' + queryString : ''}`
+  const res = await fetch(url, {
     method: method || 'GET',
     headers,
     body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
@@ -93,8 +95,9 @@ export async function apiRoute(path: string, request: Request) {
     headers['Content-Type'] = contentType
   }
 
-  const normalizedPath = path.replace(/\/+$/, '')
-  const url = `${API_URL}/api/${normalizedPath}/`
+  const [basePath, queryString] = path.split('?')
+  const normalizedPath = basePath.replace(/\/+$/, '')
+  const url = `${API_URL}/api/${normalizedPath}/${queryString ? '?' + queryString : ''}`
   const body = request.body ? await request.arrayBuffer() : undefined
 
   const { res, responseHeaders } = await doFetch(url, request.method, headers, body)

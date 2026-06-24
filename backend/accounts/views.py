@@ -187,8 +187,10 @@ def create_teacher(request):
     teacher.set_password(password)
     teacher.save()
     TeacherProfile.objects.create(user=teacher)
-    send_teacher_invitation(teacher, password)
-    return Response(UserSerializer(teacher).data, status=status.HTTP_201_CREATED)
+    email_sent = send_teacher_invitation(teacher, password)
+    data = UserSerializer(teacher).data
+    data['emailSent'] = email_sent
+    return Response(data, status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
