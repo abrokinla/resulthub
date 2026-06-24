@@ -10,9 +10,19 @@ from students.models import Student
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_subject(request):
-    data = request.data
-    data = data.copy() if hasattr(data, 'copy') else data
-    serializer = SubjectSerializer(data={**data, 'school_id': request.user.school_id})
+    raw = {}
+    for k, v in request.data.items():
+        if isinstance(v, list):
+            raw[k] = v[-1]
+        else:
+            raw[k] = v
+    if 'classId' in raw and 'class_group' not in raw:
+        raw['class_group'] = raw.pop('classId')
+    raw.pop('schoolId', None)
+    if raw.get('teacherId'):
+        raw['teacher'] = raw.pop('teacherId')
+    raw['school_id'] = request.user.school_id
+    serializer = SubjectSerializer(data=raw)
     serializer.is_valid(raise_exception=True)
     serializer.save(school_id=request.user.school_id)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -49,6 +59,8 @@ class SubjectViewSet(viewsets.ModelViewSet):
         class_id = self.request.query_params.get('classId')
         if class_id:
             qs = qs.filter(class_group_id=class_id)
+        if user.role == 'TEACHER':
+            qs = qs.filter(teacher_id=user.id)
         return qs
 
     def perform_create(self, serializer):

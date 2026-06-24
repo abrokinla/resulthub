@@ -8,21 +8,34 @@ interface Subject {
   id: string;
   name: string;
   code: string | null;
+  teacher?: string | null;
+}
+
+interface Teacher {
+  id: string;
+  name: string;
+  email: string;
 }
 
 export function SubjectManager({
   classId,
   schoolId,
   subjects,
+  userRole,
+  teachers,
 }: {
   classId: string;
   schoolId: string;
   subjects: Subject[];
+  userRole?: string;
+  teachers?: Teacher[];
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [teacherId, setTeacherId] = useState("");
   const [loading, setLoading] = useState(false);
+  const isAdmin = userRole === "ADMIN";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -30,9 +43,14 @@ export function SubjectManager({
     setLoading(true);
 
     try {
-      await api.post("/subject/create", { name, code, classId, schoolId });
+      const payload: any = { name, code, classId, schoolId };
+      if (isAdmin && teacherId) {
+        payload.teacherId = teacherId;
+      }
+      await api.post("/subject/create", payload);
       setName("");
       setCode("");
+      setTeacherId("");
       router.refresh();
     } catch {
       // silently fail
@@ -53,29 +71,45 @@ export function SubjectManager({
     <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
       <h3 className="font-semibold mb-4">Subjects</h3>
 
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
-        <input
-          type="text"
-          placeholder="Subject name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="border dark:border-gray-700 rounded-lg px-3 py-2 text-sm flex-1"
-          required
-        />
-        <input
-          type="text"
-          placeholder="Code (opt)"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          className="border dark:border-gray-700 rounded-lg px-3 py-2 text-sm w-20"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-primary text-white px-3 py-2 rounded-lg text-sm hover:bg-primary-dark disabled:opacity-50"
-        >
-          Add
-        </button>
+      <form onSubmit={handleSubmit} className="space-y-3 mb-4">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Subject name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="border dark:border-gray-700 rounded-lg px-3 py-2 text-sm flex-1"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Code (opt)"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            className="border dark:border-gray-700 rounded-lg px-3 py-2 text-sm w-20"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-primary text-white px-3 py-2 rounded-lg text-sm hover:bg-primary-dark disabled:opacity-50"
+          >
+            Add
+          </button>
+        </div>
+        {isAdmin && teachers && teachers.length > 0 && (
+          <select
+            value={teacherId}
+            onChange={(e) => setTeacherId(e.target.value)}
+            className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="">Assign to teacher (optional)</option>
+            {teachers.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name} ({t.email})
+              </option>
+            ))}
+          </select>
+        )}
       </form>
 
       <div className="space-y-2">

@@ -11,6 +11,7 @@ export default async function TeacherDashboard() {
   if (user.role !== "TEACHER") redirect("/login");
 
   const classes = await apiServer("classes/", { token });
+  const subjects = await apiServer("subjects/", { token }).catch(() => []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -61,6 +62,22 @@ export default async function TeacherDashboard() {
                   </div>
                 </div>
               </Link>
+            ))}
+          </div>
+        )}
+
+        <h2 className="text-lg font-semibold mt-8 mb-4">My Subjects</h2>
+        {subjects.length === 0 ? (
+          <div className="bg-white dark:bg-gray-900 p-8 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700 text-center">
+            <p className="text-gray-500 dark:text-gray-400">No subjects assigned to you yet.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            {subjects.map((s: any) => (
+              <div key={s.id} className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
+                <p className="font-medium text-sm">{s.name}</p>
+                {s.code && <p className="text-xs text-gray-500 dark:text-gray-400">{s.code}</p>}
+              </div>
             ))}
           </div>
         )}

@@ -13,6 +13,10 @@ class Subject(models.Model):
         'classes.ClassGroup', on_delete=models.CASCADE, related_name='subjects',
         db_column='classId'
     )
+    teacher = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='subjects', db_column='teacherId'
+    )
     name = models.TextField()
     code = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_column='createdAt')

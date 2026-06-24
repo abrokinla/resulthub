@@ -15,7 +15,7 @@ export default async function ClassDetailPage({ params }: Props) {
   if (!token) redirect("/login");
 
   const user = await apiServer("auth/me/", { token });
-  if (user.role !== "TEACHER") redirect("/login");
+  if (!["TEACHER", "ADMIN"].includes(user.role)) redirect("/login");
 
   const { id } = await params;
 
@@ -23,10 +23,11 @@ export default async function ClassDetailPage({ params }: Props) {
   const cls = Array.isArray(classes) ? classes.find((c: any) => c.id === id) : null;
   if (!cls) notFound();
 
-  const [students, subjects, studentSubjects] = await Promise.all([
+  const [students, subjects, studentSubjects, teachers] = await Promise.all([
     apiServer(`students/?classId=${id}`, { token }).catch(() => []),
     apiServer(`subjects/?classId=${id}`, { token }).catch(() => []),
     apiServer(`student-subjects/?classId=${id}`, { token }).catch(() => []),
+    apiServer('users/?role=TEACHER', { token }).catch(() => []),
   ]);
 
   return (
@@ -37,14 +38,14 @@ export default async function ClassDetailPage({ params }: Props) {
             <h1 className="text-xl font-bold">{cls.name}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">{cls.academic_year}</p>
           </div>
-          <Link href="/teacher" className="text-sm text-primary hover:underline">Back</Link>
+          <Link href={user.role === 'ADMIN' ? '/admin/classes' : '/teacher'} className="text-sm text-primary hover:underline">Back</Link>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <CreateStudentForm classId={cls.id} schoolId={user.schoolId} />
-          <SubjectManager classId={cls.id} schoolId={user.schoolId} subjects={subjects} />
+          <SubjectManager classId={cls.id} schoolId={user.schoolId} subjects={subjects} userRole={user.role} teachers={teachers} />
         </div>
 
         <ScoreEntry
