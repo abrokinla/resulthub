@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { api } from "@/lib/api";
 
 interface School {
@@ -168,11 +167,10 @@ export default function SettingsPage() {
   if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <>
       <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">School Settings</h1>
-          <Link href="/admin" className="text-sm text-primary hover:underline">Back to Dashboard</Link>
         </div>
       </header>
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
@@ -315,6 +313,6 @@ export default function SettingsPage() {
           <p className={`text-sm text-center ${message.includes("saved") ? "text-green-600" : "text-red-600"}`}>{message}</p>
         )}
       </main>
-    </div>
+    </>
   );
 }

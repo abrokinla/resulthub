@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import Link from "next/link";
 
 export default function TeacherProfilePage() {
   const router = useRouter();
@@ -109,13 +108,10 @@ export default function TeacherProfilePage() {
   if (!user) return <div className="p-8 text-center text-gray-500">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <>
       <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">My Profile</h1>
-          <Link href="/teacher" className="text-sm text-primary hover:underline">
-            Back to Dashboard
-          </Link>
         </div>
       </header>
 
@@ -283,6 +279,6 @@ export default function TeacherProfilePage() {
         </section>
 
       </main>
-    </div>
+    </>
   );
 }

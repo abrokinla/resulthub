@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { apiServer } from "@/lib/api";
-import Link from "next/link";
 import { CreateTeacherForm } from "./create-form";
 import { ResendInvitationButton } from "./resend-button";
 
@@ -15,17 +14,14 @@ export default async function TeachersPage() {
   const teachers = await apiServer("users/?role=TEACHER", { token }).catch(() => []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <>
       <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Teachers</h1>
-          <Link href="/admin" className="text-sm text-primary hover:underline">
-            Back to Dashboard
-          </Link>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 w-full">
         <CreateTeacherForm schoolId={user.schoolId} />
 
         <div className="mt-8 bg-white dark:bg-gray-900 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
@@ -54,6 +50,6 @@ export default async function TeachersPage() {
           )}
         </div>
       </main>
-    </div>
+    </>
   );
 }

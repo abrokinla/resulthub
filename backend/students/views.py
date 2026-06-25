@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
-from accounts.permissions import HasPermission, user_has_permission
+from accounts.permissions import HasPermission, user_has_permission, SECTION_GROUP_MAP
 from classes.models import ClassGroup
 from subjects.models import Subject
 from students.models import Student, AcademicRecord
@@ -30,6 +30,9 @@ class StudentViewSet(viewsets.ModelViewSet):
         if not user.school_id:
             return Student.objects.none()
         qs = Student.objects.filter(school_id=user.school_id)
+        section_group = self.request.query_params.get('section_group')
+        if section_group in SECTION_GROUP_MAP:
+            qs = qs.filter(class_group__section__in=SECTION_GROUP_MAP[section_group])
         if user.role == 'TEACHER':
             class_ids = list(ClassGroup.objects.filter(
                 teacher_id=user.id, school_id=user.school_id
@@ -69,6 +72,9 @@ class AcademicRecordViewSet(viewsets.ModelViewSet):
         if not user.school_id:
             return AcademicRecord.objects.none()
         qs = AcademicRecord.objects.filter(student__school_id=user.school_id)
+        section_group = self.request.query_params.get('section_group')
+        if section_group in SECTION_GROUP_MAP:
+            qs = qs.filter(student__class_group__section__in=SECTION_GROUP_MAP[section_group])
         if user.role == 'TEACHER':
             class_ids = list(ClassGroup.objects.filter(
                 teacher_id=user.id, school_id=user.school_id

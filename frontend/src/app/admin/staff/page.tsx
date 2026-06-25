@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { apiServer } from "@/lib/api";
-import Link from "next/link";
 import { CreateStaffForm } from "./create-form";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -27,17 +26,14 @@ export default async function StaffPage() {
   ).then((results) => results.flat());
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <>
       <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Staff Management</h1>
-          <Link href="/admin" className="text-sm text-primary hover:underline">
-            Back to Dashboard
-          </Link>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 w-full">
         {user.role === "ADMIN" && <CreateStaffForm schoolId={user.schoolId} />}
 
         <div className="mt-8 bg-white dark:bg-gray-900 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
@@ -63,6 +59,6 @@ export default async function StaffPage() {
           )}
         </div>
       </main>
-    </div>
+    </>
   );
 }

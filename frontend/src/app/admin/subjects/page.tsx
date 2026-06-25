@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { api } from "@/lib/api";
+import { useSection } from "@/lib/section-context";
 
 interface ClassGroup {
   id: string;
@@ -28,7 +27,7 @@ interface Subject {
 }
 
 export default function SubjectsPage() {
-  const router = useRouter();
+  const { sectionGroup } = useSection();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [classes, setClasses] = useState<ClassGroup[]>([]);
   const [staff, setStaff] = useState<StaffMember[]>([]);
@@ -50,9 +49,10 @@ export default function SubjectsPage() {
 
   async function fetchData() {
     try {
+      const sg = sectionGroup !== "all" ? `&section_group=${sectionGroup}` : "";
       const [subjectsData, classesData, staffData] = await Promise.all([
-        api.get("/subjects/"),
-        api.get("/classes/"),
+        api.get(`/subjects/${sg}`),
+        api.get(`/classes/${sg}`),
         api.get("/users/"),
       ]);
       const classesList: ClassGroup[] = classesData.data ?? [];
@@ -71,7 +71,7 @@ export default function SubjectsPage() {
     }
   }
 
-  useEffect(() => { fetchData() }, []);
+  useEffect(() => { fetchData() }, [sectionGroup]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -102,14 +102,13 @@ export default function SubjectsPage() {
   if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <>
       <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Subjects</h1>
-          <Link href="/admin" className="text-sm text-primary hover:underline">Back to Dashboard</Link>
         </div>
       </header>
-      <main className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 py-8 space-y-6 w-full">
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border dark:border-gray-700">
           <h2 className="font-semibold mb-3">Create Subject</h2>
           <form onSubmit={handleAdd} className="flex gap-3 items-end">
@@ -179,6 +178,6 @@ export default function SubjectsPage() {
           </div>
         )}
       </main>
-    </div>
+    </>
   );
 }

@@ -77,6 +77,11 @@ ROLE_PERMISSIONS = {
 
 MANAGEMENT_ROLES = ['ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'SECRETARY']
 
+SECTION_GROUP_MAP = {
+    'nursery_primary': ['NURSERY', 'PRIMARY'],
+    'secondary': ['JUNIOR_SECONDARY', 'SENIOR_SECONDARY'],
+}
+
 
 class HasPermission(BasePermission):
     def __init__(self, *perms):

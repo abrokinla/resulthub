@@ -1,44 +1,53 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { apiServer } from "@/lib/api";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { api } from "@/lib/api";
+import { useSection } from "@/lib/section-context";
 
-export default async function TeacherDashboard() {
-  const token = (await cookies()).get("access_token")?.value;
-  if (!token) redirect("/login");
+export default function TeacherDashboard() {
+  const router = useRouter();
+  const { sectionGroup } = useSection();
+  const [user, setUser] = useState<any>(null);
+  const [classes, setClasses] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const user = await apiServer("auth/me/", { token });
-  if (user.role !== "TEACHER") redirect("/login");
+  useEffect(() => {
+    async function load() {
+      try {
+        const u = (await api.get("/auth/me/")).data;
+        if (u.role !== "TEACHER") { router.push("/login"); return; }
+        if (!u.profileComplete) { router.push("/teacher/profile"); return; }
+        setUser(u);
 
-  if (!user.profileComplete) redirect("/teacher/profile");
+        const sg = sectionGroup !== "all" ? `&section_group=${sectionGroup}` : "";
+        const [classesData, subjectsData] = await Promise.all([
+          api.get(`/classes/${sg}`),
+          api.get(`/subjects/${sg}`).catch(() => ({ data: [] })),
+        ]);
+        setClasses(classesData.data);
+        setSubjects(subjectsData.data);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [sectionGroup, router]);
 
-  const classes = await apiServer("classes/", { token });
-  const subjects = await apiServer("subjects/", { token }).catch(() => []);
+  if (loading) return <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <>
       <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Teacher Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600 dark:text-gray-300">{user.name}</span>
-            <Link
-              href="/teacher/profile"
-              className="text-sm text-primary hover:underline"
-            >
-              Profile
-            </Link>
-            <Link
-              href="/api/auth/logout"
-              className="text-sm text-red-600 dark:text-red-400 hover:underline"
-            >
-              Sign Out
-            </Link>
-          </div>
+          <span className="text-sm text-gray-600 dark:text-gray-300">{user?.name}</span>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 w-full">
         <h2 className="text-lg font-semibold mb-4">My Classes</h2>
 
         {classes.length === 0 ? (
@@ -101,6 +110,6 @@ export default async function TeacherDashboard() {
           </Link>
         </div>
       </main>
-    </div>
+    </>
   );
 }

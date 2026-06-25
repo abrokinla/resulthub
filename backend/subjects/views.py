@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from accounts.permissions import HasPermission, user_has_permission
+from accounts.permissions import HasPermission, user_has_permission, SECTION_GROUP_MAP
 from accounts.models import User
 from subjects.models import Subject, StudentSubject
 from subjects.serializers import SubjectSerializer, StudentSubjectSerializer
@@ -62,6 +62,9 @@ class SubjectViewSet(viewsets.ModelViewSet):
         if not user.school_id:
             return Subject.objects.none()
         qs = Subject.objects.filter(school_id=user.school_id)
+        section_group = self.request.query_params.get('section_group')
+        if section_group in SECTION_GROUP_MAP:
+            qs = qs.filter(class_group__section__in=SECTION_GROUP_MAP[section_group])
         class_id = self.request.query_params.get('classId')
         if class_id:
             qs = qs.filter(class_group_id=class_id)

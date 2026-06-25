@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { api } from "@/lib/api";
+import { useSection } from "@/lib/section-context";
 
 const SECTION_COLORS: Record<string, string> = {
   NURSERY: "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300",
@@ -27,7 +26,7 @@ interface Teacher {
 }
 
 export default function ClassesPage() {
-  const router = useRouter();
+  const { sectionGroup } = useSection();
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,8 +38,9 @@ export default function ClassesPage() {
 
   async function fetchData() {
     try {
+      const sg = sectionGroup !== "all" ? `&section_group=${sectionGroup}` : "";
       const [classesData, teachersData] = await Promise.all([
-        api.get("/classes/"),
+        api.get(`/classes/${sg}`),
         api.get("/users/").catch(() => ({ data: [] })),
       ]);
       setClasses(classesData.data);
@@ -50,7 +50,7 @@ export default function ClassesPage() {
     }
   }
 
-  useEffect(() => { fetchData() }, []);
+  useEffect(() => { fetchData() }, [sectionGroup]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -89,14 +89,13 @@ export default function ClassesPage() {
   if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <>
       <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Classes</h1>
-          <Link href="/admin" className="text-sm text-primary hover:underline">Back to Dashboard</Link>
         </div>
       </header>
-      <main className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 py-8 space-y-6 w-full">
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border dark:border-gray-700">
           <form onSubmit={handleAdd} className="flex gap-3 items-end">
             <div className="flex-1">
@@ -162,6 +161,6 @@ export default function ClassesPage() {
           )}
         </div>
       </main>
-    </div>
+    </>
   );
 }

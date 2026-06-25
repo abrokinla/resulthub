@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from accounts.permissions import HasPermission, user_has_permission
+from accounts.permissions import HasPermission, user_has_permission, SECTION_GROUP_MAP
 from classes.models import ClassGroup
 from classes.serializers import ClassGroupSerializer
 from subjects.models import Subject
@@ -17,6 +17,9 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
         if not user.school_id:
             return ClassGroup.objects.none()
         qs = ClassGroup.objects.filter(school_id=user.school_id)
+        section_group = self.request.query_params.get('section_group')
+        if section_group in SECTION_GROUP_MAP:
+            qs = qs.filter(section__in=SECTION_GROUP_MAP[section_group])
         if user.role == 'TEACHER':
             class_ids = list(ClassGroup.objects.filter(
                 teacher_id=user.id, school_id=user.school_id

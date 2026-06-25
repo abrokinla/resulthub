@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
-from accounts.permissions import HasPermission, user_has_permission
+from accounts.permissions import HasPermission, user_has_permission, SECTION_GROUP_MAP
 from classes.models import ClassGroup
 from subjects.models import Subject
 from scores.models import Assessment, ScoreSummary
@@ -36,6 +36,9 @@ def update_scores(request):
             qs = ScoreSummary.objects.filter(
                 id=summary_id, student__school_id=request.user.school_id,
             )
+            section_group = request.query_params.get('section_group')
+            if section_group in SECTION_GROUP_MAP:
+                qs = qs.filter(student__class_group__section__in=SECTION_GROUP_MAP[section_group])
             visible_class_ids = _get_visible_class_ids(request.user)
             if visible_class_ids is not None:
                 qs = qs.filter(student__class_group_id__in=visible_class_ids)
@@ -61,6 +64,9 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         if not user.school_id:
             return Assessment.objects.none()
         qs = Assessment.objects.filter(student__school_id=user.school_id)
+        section_group = self.request.query_params.get('section_group')
+        if section_group in SECTION_GROUP_MAP:
+            qs = qs.filter(student__class_group__section__in=SECTION_GROUP_MAP[section_group])
         visible_class_ids = _get_visible_class_ids(user)
         if visible_class_ids is not None:
             qs = qs.filter(student__class_group_id__in=visible_class_ids)
@@ -85,6 +91,9 @@ class ScoreSummaryViewSet(viewsets.ModelViewSet):
         if not user.school_id:
             return ScoreSummary.objects.none()
         qs = ScoreSummary.objects.filter(student__school_id=user.school_id)
+        section_group = self.request.query_params.get('section_group')
+        if section_group in SECTION_GROUP_MAP:
+            qs = qs.filter(student__class_group__section__in=SECTION_GROUP_MAP[section_group])
         visible_class_ids = _get_visible_class_ids(user)
         if visible_class_ids is not None:
             qs = qs.filter(student__class_group_id__in=visible_class_ids)

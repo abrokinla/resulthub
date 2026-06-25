@@ -1,35 +1,44 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { apiServer } from "@/lib/api";
-import Link from "next/link";
+"use client";
+
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import { useSection } from "@/lib/section-context";
 import { ApproveButton } from "./approve-button";
 
-export default async function ResultsPage() {
-  const token = (await cookies()).get("access_token")?.value;
-  if (!token) redirect("/login");
+export default function ResultsPage() {
+  const { sectionGroup } = useSection();
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const user = await apiServer("auth/me/", { token });
-  if (user.role !== "ADMIN") redirect("/login");
-
-  const results = await apiServer("results/?limit=50", { token });
+  useEffect(() => {
+    async function load() {
+      try {
+        const sg = sectionGroup !== "all" ? `&section_group=${sectionGroup}` : "";
+        const res = await api.get(`/results/?limit=50${sg}`);
+        setResults(res.data);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [sectionGroup]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <>
       <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Results</h1>
-          <Link href="/admin" className="text-sm text-primary hover:underline">
-            Back to Dashboard
-          </Link>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 w-full">
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
           <div className="p-4 border-b dark:border-gray-800">
             <h2 className="font-semibold">All Results</h2>
           </div>
-          {results.length === 0 ? (
+          {loading ? (
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+          ) : results.length === 0 ? (
             <div className="p-8 text-center text-gray-500 dark:text-gray-400">No results found.</div>
           ) : (
             <div className="divide-y">
@@ -63,6 +72,6 @@ export default async function ResultsPage() {
           )}
         </div>
       </main>
-    </div>
+    </>
   );
 }

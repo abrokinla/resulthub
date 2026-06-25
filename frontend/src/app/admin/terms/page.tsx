@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import Link from "next/link";
 import { api } from "@/lib/api";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -252,7 +251,7 @@ export default function TermsPage() {
   const termOptions = terms.sort((a, b) => ORDER.indexOf(a.name) - ORDER.indexOf(b.name));
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <>
       <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">Academic Calendar</h1>
@@ -268,11 +267,10 @@ export default function TermsPage() {
               ))}
             </select>
             <button onClick={handleAdvance} className="bg-primary text-white px-3 py-1.5 rounded-lg text-sm hover:bg-primary-dark">Advance to Next Term</button>
-            <Link href="/admin" className="text-sm text-primary hover:underline">Back</Link>
           </div>
         </div>
       </header>
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 w-full">
         {message && <p className="text-sm text-red-600 text-center mb-4">{message}</p>}
 
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border dark:border-gray-700 p-4">
@@ -400,6 +398,6 @@ export default function TermsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
