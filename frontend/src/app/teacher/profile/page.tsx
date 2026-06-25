@@ -111,12 +111,12 @@ export default function TeacherProfilePage() {
   return (
     <>
       <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold">My Profile</h1>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
 
         {/* Profile Picture */}
         <section className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm border dark:border-gray-700">
@@ -159,44 +159,46 @@ export default function TeacherProfilePage() {
                 className="w-full border rounded-lg px-3 py-2 bg-gray-100 dark:bg-gray-800 dark:border-gray-600 text-gray-500"
               />
             </div>
-            <div>
-              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Full Name</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Gender</label>
-              <select
-                value={form.gender}
-                onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-              >
-                <option value="">Select gender</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Phone</label>
-              <input
-                type="text"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Address</label>
-              <textarea
-                value={form.address}
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
-                rows={2}
-                className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Gender</label>
+                <select
+                  value={form.gender}
+                  onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                >
+                  <option value="">Select gender</option>
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Phone</label>
+                <input
+                  type="text"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Address</label>
+                <textarea
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  rows={2}
+                  className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
+                />
+              </div>
             </div>
             {msg && (
               <p className={`text-sm ${isErr ? "text-red-600" : "text-green-600"}`}>{msg}</p>

@@ -91,7 +91,7 @@ export default function SubjectsPage() {
   }
 
   async function handleAssignTeacher(subjectId: string, teacherId: string | null) {
-    await api.patch(`/subjects/${subjectId}/`, { teacherId });
+    await api.patch(`/subjects/${subjectId}/`, { teacher: teacherId || null });
     fetchData();
   }
 
