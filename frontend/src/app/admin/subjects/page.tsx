@@ -35,7 +35,7 @@ export default function SubjectsPage() {
 
   const [newName, setNewName] = useState("");
   const [newCode, setNewCode] = useState("");
-  const [newClassId, setNewClassId] = useState("");
+  const [newClassIds, setNewClassIds] = useState<string[]>([]);
   const [newTeacherId, setNewTeacherId] = useState("");
 
   const ROLE_LABELS: Record<string, string> = {
@@ -75,16 +75,16 @@ export default function SubjectsPage() {
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    if (!newName.trim() || !newClassId) return;
+    if (!newName.trim() || newClassIds.length === 0) return;
     await api.post("/subject/create", {
       name: newName.trim(),
       code: newCode.trim() || undefined,
-      classId: newClassId,
-      teacherId: newTeacherId || undefined,
+      classIds: newClassIds,
+      teacherId: newClassIds.length > 1 ? undefined : newTeacherId || undefined,
     });
     setNewName("");
     setNewCode("");
-    setNewClassId("");
+    setNewClassIds([]);
     setNewTeacherId("");
     fetchData();
   }
@@ -120,20 +120,34 @@ export default function SubjectsPage() {
               <label className="block text-sm font-medium mb-1">Code</label>
               <input value={newCode} onChange={e => setNewCode(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-white" placeholder="e.g. MTH" />
             </div>
-            <div className="w-48">
-              <label className="block text-sm font-medium mb-1">Class</label>
-              <select value={newClassId} onChange={e => setNewClassId(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-white" required>
-                <option value="">Select class</option>
+            <div className="w-56">
+              <label className="block text-sm font-medium mb-1">Classes</label>
+              <div className="border dark:border-gray-700 rounded-lg px-3 py-2 max-h-32 overflow-y-auto dark:bg-gray-800">
                 {classes.sort((a, b) => a.name.localeCompare(b.name)).map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <label key={c.id} className="flex items-center gap-2 py-0.5 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newClassIds.includes(c.id)}
+                      onChange={e => setNewClassIds(prev =>
+                        e.target.checked ? [...prev, c.id] : prev.filter(id => id !== c.id)
+                      )}
+                      className="accent-primary"
+                    />
+                    <span className="dark:text-white">{c.name}</span>
+                  </label>
                 ))}
-              </select>
+              </div>
             </div>
             <div className="w-48">
               <label className="block text-sm font-medium mb-1">Assign Teacher</label>
-              <select value={newTeacherId} onChange={e => setNewTeacherId(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-white">
-                <option value="">Unassigned</option>
-                {staff.map(s => (
+              <select
+                value={newTeacherId}
+                onChange={e => setNewTeacherId(e.target.value)}
+                disabled={newClassIds.length > 1}
+                className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">{newClassIds.length > 1 ? "Assign per subject below" : "Unassigned"}</option>
+                {newClassIds.length <= 1 && staff.map(s => (
                   <option key={s.id} value={s.id}>{s.name} ({ROLE_LABELS[s.role] || s.role})</option>
                 ))}
               </select>

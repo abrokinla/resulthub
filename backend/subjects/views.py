@@ -14,22 +14,32 @@ from students.models import Student
 def create_subject(request):
     if not user_has_permission(request.user, 'subjects.manage'):
         return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+    class_ids = request.data.get('classIds')
+    if isinstance(class_ids, str):
+        class_ids = [class_ids]
+
     raw = {}
     for k, v in request.data.items():
+        if k in ('classIds',):
+            continue
         if isinstance(v, list):
             raw[k] = v[-1]
         else:
             raw[k] = v
-    if 'classId' in raw and 'class_group' not in raw:
-        raw['class_group'] = raw.pop('classId')
+    raw.pop('classId', None)
     raw.pop('schoolId', None)
     if raw.get('teacherId'):
         raw['teacher'] = raw.pop('teacherId')
     raw['school_id'] = request.user.school_id
-    serializer = SubjectSerializer(data=raw)
-    serializer.is_valid(raise_exception=True)
-    serializer.save(school_id=request.user.school_id)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    created = []
+    for class_id in class_ids:
+        serializer = SubjectSerializer(data={**raw, 'class_group': class_id})
+        serializer.is_valid(raise_exception=True)
+        serializer.save(school_id=request.user.school_id)
+        created.append(serializer.data)
+    return Response(created, status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
