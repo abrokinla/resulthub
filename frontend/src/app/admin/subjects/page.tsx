@@ -49,10 +49,10 @@ export default function SubjectsPage() {
 
   async function fetchData() {
     try {
-      const sg = sectionGroup !== "all" ? `&section_group=${sectionGroup}` : "";
+      const sgParam = sectionGroup !== "all" ? { section_group: sectionGroup } : {};
       const [subjectsData, classesData, staffData] = await Promise.all([
-        api.get(`/subjects/${sg}`),
-        api.get(`/classes/${sg}`),
+        api.get("/subjects/", { params: sgParam }),
+        api.get("/classes/", { params: sgParam }),
         api.get("/users/"),
       ]);
       const classesList: ClassGroup[] = classesData.data ?? [];

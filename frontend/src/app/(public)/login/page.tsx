@@ -10,10 +10,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
       const res = await api.post("/auth/login", { email, password });
@@ -23,6 +25,8 @@ export default function LoginPage() {
       }
     } catch {
       setError("Invalid email or password");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -65,9 +69,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-primary-dark"
+            disabled={loading}
+            className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-primary-dark disabled:opacity-50"
           >
-            Sign In
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 

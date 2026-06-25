@@ -17,10 +17,10 @@ export default function PromotionsPage() {
       try {
         const u = (await api.get("/auth/me/")).data;
         setUser(u);
-        const sg = sectionGroup !== "all" ? `&section_group=${sectionGroup}` : "";
+        const sgParam = sectionGroup !== "all" ? { section_group: sectionGroup } : {};
         const [termsData, studentsData] = await Promise.all([
           api.get("/terms/"),
-          api.get(`/students/${sg}`).catch(() => ({ data: [] })),
+          api.get("/students/", { params: sgParam }).catch(() => ({ data: [] })),
         ]);
         setTerms(termsData.data);
         setStudents(studentsData.data);

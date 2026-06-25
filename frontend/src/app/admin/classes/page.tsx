@@ -25,6 +25,19 @@ interface Teacher {
   name: string;
 }
 
+const ALL_SECTIONS = [
+  { value: "NURSERY", label: "Nursery" },
+  { value: "PRIMARY", label: "Primary" },
+  { value: "JUNIOR_SECONDARY", label: "Junior Secondary" },
+  { value: "SENIOR_SECONDARY", label: "Senior Secondary" },
+];
+
+const SECTION_GROUP_FILTER: Record<string, string[]> = {
+  all: ["NURSERY", "PRIMARY", "JUNIOR_SECONDARY", "SENIOR_SECONDARY"],
+  nursery_primary: ["NURSERY", "PRIMARY"],
+  secondary: ["JUNIOR_SECONDARY", "SENIOR_SECONDARY"],
+};
+
 export default function ClassesPage() {
   const { sectionGroup } = useSection();
   const [classes, setClasses] = useState<ClassItem[]>([]);
@@ -38,9 +51,9 @@ export default function ClassesPage() {
 
   async function fetchData() {
     try {
-      const sg = sectionGroup !== "all" ? `&section_group=${sectionGroup}` : "";
+      const sgParam = sectionGroup !== "all" ? { section_group: sectionGroup } : {};
       const [classesData, teachersData] = await Promise.all([
-        api.get(`/classes/${sg}`),
+        api.get("/classes/", { params: sgParam }),
         api.get("/users/").catch(() => ({ data: [] })),
       ]);
       setClasses(classesData.data);
@@ -105,10 +118,9 @@ export default function ClassesPage() {
             <div className="w-48">
               <label className="block text-sm font-medium mb-1">Section</label>
               <select value={newSection} onChange={e => setNewSection(e.target.value)} className="w-full border dark:border-gray-700 rounded-lg px-3 py-2 dark:bg-gray-800 dark:text-white">
-                <option value="NURSERY">Nursery</option>
-                <option value="PRIMARY">Primary</option>
-                <option value="JUNIOR_SECONDARY">Junior Secondary</option>
-                <option value="SENIOR_SECONDARY">Senior Secondary</option>
+                {ALL_SECTIONS.filter(s => SECTION_GROUP_FILTER[sectionGroup].includes(s.value)).map(s => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
               </select>
             </div>
             <button type="submit" className="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-primary-dark">Add Class</button>
@@ -128,10 +140,9 @@ export default function ClassesPage() {
                       <div className="flex gap-2 items-center">
                         <input value={editName} onChange={e => setEditName(e.target.value)} className="border dark:border-gray-700 rounded px-2 py-1 text-sm flex-1 dark:bg-gray-800 dark:text-white" />
                         <select value={editSection} onChange={e => setEditSection(e.target.value)} className="border dark:border-gray-700 rounded px-2 py-1 text-sm dark:bg-gray-800 dark:text-white">
-                          <option value="NURSERY">Nursery</option>
-                          <option value="PRIMARY">Primary</option>
-                          <option value="JUNIOR_SECONDARY">Junior Secondary</option>
-                          <option value="SENIOR_SECONDARY">Senior Secondary</option>
+                          {ALL_SECTIONS.filter(s => SECTION_GROUP_FILTER[sectionGroup].includes(s.value)).map(s => (
+                            <option key={s.value} value={s.value}>{s.label}</option>
+                          ))}
                         </select>
                         <button onClick={() => handleEdit(cls)} className="text-green-600 text-sm hover:underline">Save</button>
                         <button onClick={() => setEditingId(null)} className="text-gray-500 text-sm hover:underline">Cancel</button>

@@ -30,12 +30,12 @@ export default function ClassDetailPage() {
         if (!["TEACHER", "ADMIN", "PRINCIPAL"].includes(u.role)) { router.push("/login"); return; }
         setUser(u);
 
-        const sg = sectionGroup !== "all" ? `&section_group=${sectionGroup}` : "";
+        const sgParam = sectionGroup !== "all" ? { section_group: sectionGroup } : {};
         const [classesData, studentsData, subjectsData, studentSubjectsData, teachersData] = await Promise.all([
-          api.get(`/classes/${sg}`),
-          api.get(`/students/?classId=${id}${sg}`).catch(() => ({ data: [] })),
-          api.get(`/subjects/?classId=${id}${sg}`).catch(() => ({ data: [] })),
-          api.get(`/student-subjects/?classId=${id}`).catch(() => ({ data: [] })),
+          api.get("/classes/", { params: sgParam }),
+          api.get("/students/", { params: { classId: id, ...sgParam } }).catch(() => ({ data: [] })),
+          api.get("/subjects/", { params: { classId: id, ...sgParam } }).catch(() => ({ data: [] })),
+          api.get("/student-subjects/?classId=" + id).catch(() => ({ data: [] })),
           api.get("/users/?role=TEACHER").catch(() => ({ data: [] })),
         ]);
         const found = classesData.data.find((c: any) => c.id === id);

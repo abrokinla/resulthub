@@ -22,10 +22,10 @@ export default function TeacherDashboard() {
         if (!u.profileComplete) { router.push("/teacher/profile"); return; }
         setUser(u);
 
-        const sg = sectionGroup !== "all" ? `&section_group=${sectionGroup}` : "";
+        const sgParam = sectionGroup !== "all" ? { section_group: sectionGroup } : {};
         const [classesData, subjectsData] = await Promise.all([
-          api.get(`/classes/${sg}`),
-          api.get(`/subjects/${sg}`).catch(() => ({ data: [] })),
+          api.get("/classes/", { params: sgParam }),
+          api.get("/subjects/", { params: sgParam }).catch(() => ({ data: [] })),
         ]);
         setClasses(classesData.data);
         setSubjects(subjectsData.data);
