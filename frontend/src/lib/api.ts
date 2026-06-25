@@ -95,9 +95,11 @@ export async function apiRoute(path: string, request: Request) {
     headers['Content-Type'] = contentType
   }
 
-  const [basePath, queryString] = path.split('?')
+  const urlObj = new URL(request.url)
+  const qs = urlObj.searchParams.toString()
+  const [basePath] = path.split('?')
   const normalizedPath = basePath.replace(/\/+$/, '')
-  const url = `${API_URL}/api/${normalizedPath}/${queryString ? '?' + queryString : ''}`
+  const url = `${API_URL}/api/${normalizedPath}/${qs ? '?' + qs : ''}`
   const body = request.body ? await request.arrayBuffer() : undefined
 
   const { res, responseHeaders } = await doFetch(url, request.method, headers, body)

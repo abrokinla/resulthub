@@ -41,8 +41,8 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
         teacher_id = request.data.get('teacherId')
         if teacher_id:
             class_group.teacher_id = teacher_id
-            class_group.save(update_fields=['teacherId'])
+            class_group.save(update_fields=['teacher_id'])
         elif 'teacherId' in request.data and request.data['teacherId'] is None:
             class_group.teacher = None
-            class_group.save(update_fields=['teacherId'])
+            class_group.save(update_fields=['teacher_id'])
         return Response(ClassGroupSerializer(class_group).data)
