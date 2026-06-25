@@ -45,6 +45,7 @@ export default function ClassesPage() {
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
   const [newSection, setNewSection] = useState("NURSERY");
+  const [pendingTeachers, setPendingTeachers] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editSection, setEditSection] = useState("");
@@ -155,15 +156,23 @@ export default function ClassesPage() {
                       </div>
                     )}
                   </div>
-                  <div className="w-48">
+                  <div className="w-56 flex gap-2 items-center">
                     <select
-                      value={cls.teacher ?? ""}
-                      onChange={e => handleAssignTeacher(cls.id, e.target.value || null)}
-                      className="text-sm border dark:border-gray-700 rounded-lg px-2 py-1 w-full dark:bg-gray-800 dark:text-white"
+                      value={pendingTeachers[cls.id] ?? cls.teacher ?? ""}
+                      onChange={e => setPendingTeachers(prev => ({ ...prev, [cls.id]: e.target.value }))}
+                      className="text-sm border dark:border-gray-700 rounded-lg px-2 py-1 flex-1 dark:bg-gray-800 dark:text-white"
                     >
                       <option value="">Unassigned</option>
                       {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
+                    {pendingTeachers[cls.id] !== undefined && (
+                      <button
+                        onClick={() => handleAssignTeacher(cls.id, pendingTeachers[cls.id] || null)}
+                        className="text-xs bg-primary text-white px-2 py-1 rounded hover:bg-primary-dark"
+                      >
+                        Update
+                      </button>
+                    )}
                   </div>
                   <button onClick={() => handleDelete(cls.id)} className="text-red-500 text-sm hover:underline">Delete</button>
                 </div>

@@ -8,7 +8,7 @@ export default function TeacherProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [form, setForm] = useState({ name: "", phone: "", address: "" });
+  const [form, setForm] = useState({ name: "", phone: "", address: "", gender: "" });
   const [pwd, setPwd] = useState({ current: "", newPwd: "", confirm: "" });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
@@ -25,6 +25,7 @@ export default function TeacherProfilePage() {
         name: data.name || "",
         phone: data.teacher_profile?.phone || "",
         address: data.teacher_profile?.address || "",
+        gender: data.gender || "",
       });
     }).catch(() => router.push("/login"));
   }, [router]);
@@ -166,6 +167,18 @@ export default function TeacherProfilePage() {
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600"
               />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Gender</label>
+              <select
+                value={form.gender}
+                onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+              >
+                <option value="">Select gender</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Phone</label>

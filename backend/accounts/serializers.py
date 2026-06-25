@@ -5,7 +5,7 @@ from .models import User, TeacherProfile
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'name', 'role', 'school')
+        fields = ('id', 'email', 'name', 'role', 'school', 'gender')
         read_only_fields = ('id',)
 
 
@@ -20,7 +20,7 @@ class CombinedProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'name', 'role', 'phone', 'school', 'teacher_profile')
+        fields = ('id', 'email', 'name', 'role', 'phone', 'gender', 'school', 'teacher_profile')
         read_only_fields = ('id', 'email', 'role', 'school')
 
 

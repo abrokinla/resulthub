@@ -37,6 +37,7 @@ export default function SubjectsPage() {
   const [newCode, setNewCode] = useState("");
   const [newClassIds, setNewClassIds] = useState<string[]>([]);
   const [newTeacherId, setNewTeacherId] = useState("");
+  const [pendingSubjectTeachers, setPendingSubjectTeachers] = useState<Record<string, string>>({});
 
   const ROLE_LABELS: Record<string, string> = {
     TEACHER: "Teacher",
@@ -167,17 +168,25 @@ export default function SubjectsPage() {
                       <p className="font-medium">{subj.name}</p>
                       {subj.code && <p className="text-xs text-gray-500">{subj.code}</p>}
                     </div>
-                    <div className="w-48">
+                    <div className="w-56 flex gap-2 items-center">
                       <select
-                        value={subj.teacher ?? ""}
-                        onChange={e => handleAssignTeacher(subj.id, e.target.value || null)}
-                        className="text-sm border dark:border-gray-700 rounded-lg px-2 py-1 w-full dark:bg-gray-800 dark:text-white"
+                        value={pendingSubjectTeachers[subj.id] ?? subj.teacher ?? ""}
+                        onChange={e => setPendingSubjectTeachers(prev => ({ ...prev, [subj.id]: e.target.value }))}
+                        className="text-sm border dark:border-gray-700 rounded-lg px-2 py-1 flex-1 dark:bg-gray-800 dark:text-white"
                       >
                         <option value="">Unassigned</option>
                         {staff.map(s => (
                           <option key={s.id} value={s.id}>{s.name}</option>
                         ))}
                       </select>
+                      {pendingSubjectTeachers[subj.id] !== undefined && (
+                        <button
+                          onClick={() => handleAssignTeacher(subj.id, pendingSubjectTeachers[subj.id] || null)}
+                          className="text-xs bg-primary text-white px-2 py-1 rounded hover:bg-primary-dark"
+                        >
+                          Update
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

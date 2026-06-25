@@ -1,6 +1,9 @@
-export async function POST() {
-  const response = Response.json({ message: 'Logged out' }, { status: 200 })
-  response.headers.set('Set-Cookie', 'access_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0')
-  response.headers.append('Set-Cookie', 'refresh_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0')
-  return response
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const response = NextResponse.redirect(new URL("/login", appUrl));
+  response.cookies.set("access_token", "", { maxAge: 0, path: "/" });
+  response.cookies.set("refresh_token", "", { maxAge: 0, path: "/" });
+  return response;
 }

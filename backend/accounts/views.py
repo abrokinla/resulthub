@@ -227,6 +227,9 @@ def profile(request):
     if 'name' in data:
         user.name = data['name'].strip()
         user.save(update_fields=['name'])
+    if 'gender' in data:
+        user.gender = data['gender']
+        user.save(update_fields=['gender'])
     if 'phone' in data:
         profile.phone = data['phone'].strip()
     if 'address' in data:

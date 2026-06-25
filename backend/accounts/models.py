@@ -22,11 +22,17 @@ class User(models.Model):
         'schools.School', on_delete=models.CASCADE, related_name='users',
         null=True, blank=True, db_column='schoolId'
     )
+    GENDER_CHOICES = [
+        ('MALE', 'Male'),
+        ('FEMALE', 'Female'),
+    ]
+
     email = models.EmailField(unique=True)
     password = models.TextField(db_column='passwordHash', blank=True)
     name = models.TextField()
     role = models.TextField(choices=ROLE_CHOICES, default='ADMIN')
     phone = models.TextField(null=True, blank=True)
+    gender = models.TextField(choices=GENDER_CHOICES, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, db_column='createdAt')
     updated_at = models.DateTimeField(auto_now=True, db_column='updatedAt')
