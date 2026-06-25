@@ -135,6 +135,7 @@ CORS_ALLOW_HEADERS = [
     'next-router-state-tree',
     'next-url',
     'next-action',
+    'next-router-segment-prefetch',
 ]
 
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
