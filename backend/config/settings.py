@@ -28,6 +28,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'config.middleware.ErrorTypeMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -105,7 +106,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    'EXCEPTION_HANDLER': 'accounts.views.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'config.exception_handlers.custom_exception_handler',
 }
 
 from datetime import timedelta
