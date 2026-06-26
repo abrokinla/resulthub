@@ -163,7 +163,7 @@ export async function apiRoute(path: string, request: Request) {
 
   // 401 response - check if it's token expiry before attempting refresh
   let resText = ''
-  let errorData: Record<string, unknown> = {}
+  let errorData: Record<string, any> = {}
 
   try {
     resText = await res.text()
