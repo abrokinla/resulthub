@@ -1,6 +1,7 @@
 import json
 import uuid
 from django.db import transaction
+from django.db.models import Count
 from .backends import SHA256AuthBackend
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -358,7 +359,9 @@ def list_users(request):
     user = request.user
     if not user.school_id:
         return Response({'error': 'No school associated'}, status=400)
-    qs = User.objects.filter(school_id=user.school_id)
+    qs = User.objects.filter(school_id=user.school_id).annotate(
+        classesCount=Count('class_groups')
+    )
     role = request.query_params.get('role')
     if role:
         qs = qs.filter(role=role)

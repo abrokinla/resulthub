@@ -3,10 +3,12 @@ from .models import User, TeacherProfile
 
 
 class UserSerializer(serializers.ModelSerializer):
+    classesCount = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = User
-        fields = ('id', 'email', 'name', 'role', 'school', 'gender')
-        read_only_fields = ('id',)
+        fields = ('id', 'email', 'name', 'role', 'school', 'gender', 'classesCount')
+        read_only_fields = ('id', 'classesCount')
 
 
 class TeacherProfileSerializer(serializers.ModelSerializer):
