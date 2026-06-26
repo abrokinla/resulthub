@@ -125,7 +125,15 @@ async function doFetch(url: string, method: string, headers: Record<string, stri
 
 export async function apiRoute(path: string, request: Request) {
   const cookieHeader = request.headers.get('cookie') || ''
-  const token = getCookieValue(cookieHeader, 'access_token')
+  let token = getCookieValue(cookieHeader, 'access_token')
+
+  // Fallback: middleware passes token via x-access-token header
+  // On Cloudflare Workers, cookies aren't reliably forwarded to Route Handlers,
+  // but the middleware (which CAN read cookies) sets this header.
+  if (!token) {
+    token = request.headers.get('x-access-token')
+  }
+
   const refreshToken = getCookieValue(cookieHeader, 'refresh_token')
 
   const headers: Record<string, string> = {}
