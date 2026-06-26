@@ -16,6 +16,27 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+const publicPaths = ['/login', '/signup', '/access']
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
+      const currentPath = window.location.pathname
+      if (!publicPaths.some(p => currentPath === p || currentPath.startsWith(p + '/'))) {
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
+export function redirectToLogin() {
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login'
+  }
+}
+
 interface ApiOptions {
   token?: string
   method?: string

@@ -14,8 +14,13 @@ export default async function StaffPage() {
   const token = (await cookies()).get("access_token")?.value;
   if (!token) redirect("/login");
 
-  const user = await apiServer("auth/me/", { token });
-  if (!["ADMIN", "PRINCIPAL", "VICE_PRINCIPAL"].includes(user.role)) redirect("/login");
+  let user: any;
+  try {
+    user = await apiServer("auth/me/", { token });
+  } catch {
+    redirect("/login");
+  }
+  if (!user?.role || !["ADMIN", "PRINCIPAL", "VICE_PRINCIPAL"].includes(user.role)) redirect("/login");
 
   const roles = ["PRINCIPAL", "VICE_PRINCIPAL", "SECRETARY", "ACCOUNTANT"];
   const staff = await Promise.all(
