@@ -74,6 +74,7 @@ export async function middleware(request: NextRequest) {
 
     const response = NextResponse.next()
     response.cookies.set('access_token', data.access, {
+      httpOnly: true,
       secure: true,
       sameSite: 'lax',
       path: '/',
