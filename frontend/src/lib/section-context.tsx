@@ -19,7 +19,7 @@ export function SectionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem("sectionGroup") as SectionGroup | null;
-    if (saved) setSectionGroup(saved);
+    if (saved) setSectionGroup(saved); // eslint-disable-line react-hooks/set-state-in-effect
   }, []);
 
   const handleSet = (group: SectionGroup) => {

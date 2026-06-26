@@ -54,6 +54,8 @@ export default function ClassDetailPage() {
   if (loading) return <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>;
   if (!cls) return <div className="p-8 text-center text-gray-500 dark:text-gray-400">Class not found.</div>;
 
+  const isClassTeacher = user?.role === "ADMIN" || cls.is_class_teacher === true;
+
   return (
     <>
       <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
@@ -67,10 +69,18 @@ export default function ClassDetailPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <CreateStudentForm classId={cls.id} schoolId={user?.schoolId} />
-          <SubjectManager classId={cls.id} schoolId={user?.schoolId} subjects={subjects} userRole={user?.role} teachers={teachers} />
-        </div>
+        {!isClassTeacher && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-lg text-sm">
+            You are a subject teacher for this class. Student management is not available. You can enter scores for your subjects below.
+          </div>
+        )}
+
+        {isClassTeacher && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CreateStudentForm classId={cls.id} schoolId={user?.schoolId} />
+            <SubjectManager classId={cls.id} schoolId={user?.schoolId} subjects={subjects} userRole={user?.role} teachers={teachers} />
+          </div>
+        )}
 
         <ScoreEntry
           classId={cls.id}

@@ -124,6 +124,8 @@ cloudinary.config(
     secure=True,
 )
 
+# On Render, set CORS_ALLOWED_ORIGINS to include:
+#   http://localhost:3000,https://resulthub.pages.dev,https://resulthub.abrokinla.workers.dev
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [

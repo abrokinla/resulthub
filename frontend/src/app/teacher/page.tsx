@@ -10,8 +10,8 @@ export default function TeacherDashboard() {
   const router = useRouter();
   const { sectionGroup } = useSection();
   const [user, setUser] = useState<any>(null);
-  const [classes, setClasses] = useState<any[]>([]);
-  const [subjects, setSubjects] = useState<any[]>([]);
+  const [classTeacherClasses, setClassTeacherClasses] = useState<any[]>([]);
+  const [groupedSubjectClasses, setGroupedSubjectClasses] = useState<Record<string, { classId: string; className: string; section: string; subjects: any[] }>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,12 +23,23 @@ export default function TeacherDashboard() {
         setUser(u);
 
         const sgParam = sectionGroup !== "all" ? { section_group: sectionGroup } : {};
-        const [classesData, subjectsData] = await Promise.all([
-          api.get("/classes/", { params: sgParam }),
+
+        const [ctClassesData, subjectsData] = await Promise.all([
+          api.get("/classes/", { params: { ...sgParam, assignment_type: "class_teacher" } }).catch(() => ({ data: [] })),
           api.get("/subjects/", { params: sgParam }).catch(() => ({ data: [] })),
         ]);
-        setClasses(classesData.data);
-        setSubjects(subjectsData.data);
+
+        setClassTeacherClasses(ctClassesData.data);
+
+        const grouped: Record<string, any> = {};
+        for (const subj of subjectsData.data) {
+          const key = subj.class_group;
+          if (!grouped[key]) {
+            grouped[key] = { classId: key, className: subj.class_group_name ?? "Unknown", section: subj.class_group_section ?? "", subjects: [] };
+          }
+          grouped[key].subjects.push(subj);
+        }
+        setGroupedSubjectClasses(grouped);
       } finally {
         setLoading(false);
       }
@@ -37,6 +48,8 @@ export default function TeacherDashboard() {
   }, [sectionGroup, router]);
 
   if (loading) return <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>;
+
+  const subjectGroups = Object.values(groupedSubjectClasses);
 
   return (
     <>
@@ -48,15 +61,15 @@ export default function TeacherDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 w-full">
-        <h2 className="text-lg font-semibold mb-4">My Classes</h2>
+        <h2 className="text-lg font-semibold mb-4">My Class{classTeacherClasses.length !== 1 ? "es" : ""}</h2>
 
-        {classes.length === 0 ? (
+        {classTeacherClasses.length === 0 ? (
           <div className="bg-white dark:bg-gray-900 p-8 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700 text-center">
-            <p className="text-gray-500 dark:text-gray-400">No classes assigned to you yet.</p>
+            <p className="text-gray-500 dark:text-gray-400">You are not assigned as a class teacher for any class.</p>
           </div>
         ) : (
           <div className="grid gap-4">
-            {classes.map((cls: any) => (
+            {classTeacherClasses.map((cls: any) => (
               <Link
                 key={cls.id}
                 href={`/teacher/classes/${cls.id}`}
@@ -77,23 +90,44 @@ export default function TeacherDashboard() {
           </div>
         )}
 
-        <h2 className="text-lg font-semibold mt-8 mb-4">My Subjects</h2>
-        {subjects.length === 0 ? (
+        <h2 className="text-lg font-semibold mt-8 mb-4">My Subject Areas</h2>
+
+        {subjectGroups.length === 0 ? (
           <div className="bg-white dark:bg-gray-900 p-8 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700 text-center">
             <p className="text-gray-500 dark:text-gray-400">No subjects assigned to you yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-            {subjects.map((s: any) => (
-              <div key={s.id} className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700">
-                <p className="font-medium text-sm">{s.name}</p>
-                {s.code && <p className="text-xs text-gray-500 dark:text-gray-400">{s.code}</p>}
+          <div className="space-y-4 mb-8">
+            {subjectGroups.map((group: any) => (
+              <div key={group.classId} className="bg-white dark:bg-gray-900 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700 overflow-hidden">
+                <Link
+                  href={`/teacher/classes/${group.classId}`}
+                  className="block px-5 py-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-750 transition"
+                >
+                  <h3 className="font-semibold">{group.className}</h3>
+                  {group.section && <p className="text-xs text-gray-500 dark:text-gray-400">{group.section.replace(/_/g, " ")}</p>}
+                </Link>
+                <div className="divide-y dark:divide-gray-700">
+                  {group.subjects.map((s: any) => (
+                    <Link
+                      key={s.id}
+                      href={`/teacher/classes/${group.classId}`}
+                      className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                    >
+                      <div>
+                        <p className="font-medium text-sm">{s.name}</p>
+                        {s.code && <p className="text-xs text-gray-500 dark:text-gray-400">{s.code}</p>}
+                      </div>
+                      <span className="text-xs text-primary font-medium">Enter Scores</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
         )}
 
-        <div className="mt-8 grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <Link
             href="/teacher/csv-import"
             className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm dark:shadow-gray-900/50 border dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/50 transition text-center"

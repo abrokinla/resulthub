@@ -3,6 +3,10 @@ import axios from 'axios'
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export const api = axios.create({
+  baseURL: `${API_URL}/api`,
+})
+
+export const authApi = axios.create({
   baseURL: '/api',
 })
 
@@ -159,7 +163,7 @@ export async function apiRoute(path: string, request: Request) {
 
   // 401 response - check if it's token expiry before attempting refresh
   let resText = ''
-  let errorData: any = {}
+  let errorData: Record<string, unknown> = {}
 
   try {
     resText = await res.text()

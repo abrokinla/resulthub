@@ -21,13 +21,22 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
         if section_group in SECTION_GROUP_MAP:
             qs = qs.filter(section__in=SECTION_GROUP_MAP[section_group])
         if user.role == 'TEACHER':
-            class_ids = list(ClassGroup.objects.filter(
-                teacher_id=user.id, school_id=user.school_id
-            ).values_list('id', flat=True))
-            subject_class_ids = list(Subject.objects.filter(
-                teacher_id=user.id, school_id=user.school_id
-            ).values_list('class_group_id', flat=True).distinct())
-            qs = qs.filter(id__in=class_ids + subject_class_ids)
+            assignment_type = self.request.query_params.get('assignment_type')
+            if assignment_type == 'class_teacher':
+                qs = qs.filter(teacher_id=user.id)
+            elif assignment_type == 'subject_teacher':
+                subject_class_ids = list(Subject.objects.filter(
+                    teacher_id=user.id, school_id=user.school_id
+                ).values_list('class_group_id', flat=True).distinct())
+                qs = qs.filter(id__in=subject_class_ids)
+            else:
+                class_ids = list(ClassGroup.objects.filter(
+                    teacher_id=user.id, school_id=user.school_id
+                ).values_list('id', flat=True))
+                subject_class_ids = list(Subject.objects.filter(
+                    teacher_id=user.id, school_id=user.school_id
+                ).values_list('class_group_id', flat=True).distinct())
+                qs = qs.filter(id__in=class_ids + subject_class_ids)
         return qs
 
     def perform_create(self, serializer):
