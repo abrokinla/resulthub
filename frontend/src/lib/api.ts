@@ -21,12 +21,38 @@ const publicPaths = ['/login', '/signup', '/access']
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
-      const currentPath = window.location.pathname
-      if (!publicPaths.some(p => currentPath === p || currentPath.startsWith(p + '/'))) {
-        window.location.href = '/login'
-      }
+    if (!error.response) {
+      // Network error - pass through
+      return Promise.reject(error)
     }
+
+    const status = error.response.status
+    const errorData = error.response.data || {}
+    const errorType = errorData.error_type || errorData.detail?.error_type
+
+    if (typeof window === 'undefined') {
+      return Promise.reject(error)
+    }
+
+    const currentPath = window.location.pathname
+    const isPublicPath = publicPaths.some(
+      (p) => currentPath === p || currentPath.startsWith(p + '/')
+    )
+
+    // Only redirect to login on token expiry, not on other 401 errors
+    if (status === 401 && !isPublicPath) {
+      // If the error is specifically token_expired, it means middleware/route handler
+      // failed to refresh it, so we should redirect to login
+      if (errorType === 'token_expired' || errorData.detail === 'Token expired' || !errorType) {
+        // Unknown 401 or explicit token expiry - redirect to login
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
+      }
+      // For other error types (invalid_credentials, permission_denied, etc),
+      // don't redirect - let the component handle the error display
+    }
+
     return Promise.reject(error)
   }
 )
@@ -125,17 +151,40 @@ export async function apiRoute(path: string, request: Request) {
 
   const { res, responseHeaders } = await doFetch(url, request.method, headers, body)
 
+  // Non-401 responses pass through
   if (res.status !== 401) {
     return new Response(await res.text(), { status: res.status, headers: responseHeaders })
   }
 
-  if (!refreshToken) {
-    const h = new Headers(responseHeaders)
-    h.append('Set-Cookie', clearCookieHeader('access_token'))
-    h.append('Set-Cookie', clearCookieHeader('refresh_token'))
-    return new Response(await res.text(), { status: 401, headers: h })
+  // 401 response - check if it's token expiry before attempting refresh
+  let resText = ''
+  let errorData: any = {}
+
+  try {
+    resText = await res.text()
+    if (resText) {
+      errorData = JSON.parse(resText)
+    }
+  } catch {
+    // If we can't parse, treat as unknown error
+    resText = ''
   }
 
+  const errorType = errorData.error_type || errorData.detail?.error_type
+  const isTokenExpired = errorType === 'token_expired' || errorData.detail === 'Token expired'
+
+  // Only attempt refresh if it's explicitly a token_expired error
+  // For other 401s (invalid credentials, permission denied, etc), return as-is
+  if (!isTokenExpired || !refreshToken) {
+    const h = new Headers(responseHeaders)
+    if (!refreshToken) {
+      h.append('Set-Cookie', clearCookieHeader('access_token'))
+      h.append('Set-Cookie', clearCookieHeader('refresh_token'))
+    }
+    return new Response(resText || JSON.stringify(errorData), { status: 401, headers: h })
+  }
+
+  // Attempt token refresh for token_expired errors
   let newAccessToken: string | null = null
   try {
     const refreshRes = await fetch(`${API_URL}/api/token/refresh/`, {
@@ -148,16 +197,17 @@ export async function apiRoute(path: string, request: Request) {
       newAccessToken = refreshData.access
     }
   } catch {
-    // refresh failed
+    // Refresh failed - will clear cookies below
   }
 
   if (!newAccessToken) {
     const h = new Headers(responseHeaders)
     h.append('Set-Cookie', clearCookieHeader('access_token'))
     h.append('Set-Cookie', clearCookieHeader('refresh_token'))
-    return new Response(await res.text(), { status: 401, headers: h })
+    return new Response(resText || JSON.stringify(errorData), { status: 401, headers: h })
   }
 
+  // Retry original request with new token
   headers['Authorization'] = `Bearer ${newAccessToken}`
   const retry = await doFetch(url, request.method, headers, body)
   const merged = new Headers(retry.responseHeaders)
