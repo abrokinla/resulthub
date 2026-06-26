@@ -1,12 +1,36 @@
 import json
 import uuid
+import logging
 from django.db import transaction
 from .backends import SHA256AuthBackend
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+
+logger = logging.getLogger(__name__)
+
+
+def custom_exception_handler(exc, context):
+    from rest_framework.views import exception_handler
+    response = exception_handler(exc, context)
+    if response is not None:
+        if isinstance(exc, AuthenticationFailed):
+            response.data['error_type'] = 'invalid_credentials'
+            if 'token' in str(exc).lower() or 'expired' in str(exc).lower():
+                response.data['error_type'] = 'token_expired'
+        elif isinstance(exc, PermissionDenied):
+            response.data['error_type'] = 'permission_denied'
+        elif isinstance(exc, TokenError):
+            response.data['error_type'] = 'token_error'
+            if 'expired' in str(exc).lower():
+                response.data['error_type'] = 'token_expired'
+        elif isinstance(exc, InvalidToken):
+            response.data['error_type'] = 'invalid_token'
+    return response
 
 from schools.models import School, SchoolConfig, Term
 from classes.models import ClassGroup
