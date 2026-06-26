@@ -105,7 +105,8 @@ function getCookieValue(cookieHeader: string, name: string): string | null {
 }
 
 function setCookieHeader(name: string, value: string, maxAge: number): string {
-  return `${name}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`
+  const httpOnly = name === 'refresh_token' ? 'HttpOnly; ' : ''
+  return `${name}=${value}; Path=/; ${httpOnly}Secure; SameSite=Lax; Max-Age=${maxAge}`
 }
 
 function clearCookieHeader(name: string): string {

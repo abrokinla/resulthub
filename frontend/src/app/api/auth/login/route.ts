@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const response = Response.json({ user: data.user }, { status: 200 })
     response.headers.set(
       'Set-Cookie',
-      `access_token=${data.access}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=3600`
+      `access_token=${data.access}; Path=/; Secure; SameSite=Lax; Max-Age=3600`
     )
     response.headers.append(
       'Set-Cookie',
