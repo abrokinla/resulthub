@@ -105,7 +105,8 @@ function getCookieValue(cookieHeader: string, name: string): string | null {
 }
 
 function setCookieHeader(name: string, value: string, maxAge: number): string {
-  return `${name}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`
+  const httpOnly = name === 'refresh_token' ? 'HttpOnly; ' : ''
+  return `${name}=${value}; Path=/; ${httpOnly}Secure; SameSite=Lax; Max-Age=${maxAge}`
 }
 
 function clearCookieHeader(name: string): string {
@@ -125,15 +126,7 @@ async function doFetch(url: string, method: string, headers: Record<string, stri
 
 export async function apiRoute(path: string, request: Request) {
   const cookieHeader = request.headers.get('cookie') || ''
-  let token = getCookieValue(cookieHeader, 'access_token')
-
-  // Fallback: middleware passes token via x-access-token header
-  // On Cloudflare Workers, cookies aren't reliably forwarded to Route Handlers,
-  // but the middleware (which CAN read cookies) sets this header.
-  if (!token) {
-    token = request.headers.get('x-access-token')
-  }
-
+  const token = getCookieValue(cookieHeader, 'access_token')
   const refreshToken = getCookieValue(cookieHeader, 'refresh_token')
 
   const headers: Record<string, string> = {}

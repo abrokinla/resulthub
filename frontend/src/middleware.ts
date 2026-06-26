@@ -48,9 +48,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!isTokenExpired(accessToken)) {
-    const requestHeaders = new Headers(request.headers)
-    requestHeaders.set('x-access-token', accessToken)
-    return NextResponse.next({ request: { headers: requestHeaders } })
+    return NextResponse.next()
   }
 
   if (!refreshToken) {
@@ -74,11 +72,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    const requestHeaders = new Headers(request.headers)
-    requestHeaders.set('x-access-token', data.access)
-    const response = NextResponse.next({ request: { headers: requestHeaders } })
+    const response = NextResponse.next()
     response.cookies.set('access_token', data.access, {
-      httpOnly: true,
       secure: true,
       sameSite: 'lax',
       path: '/',
